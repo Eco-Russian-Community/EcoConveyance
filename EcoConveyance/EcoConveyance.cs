@@ -7,7 +7,7 @@ namespace Eco.Mods.EcoConveyance
 {
 	public class EcoConveyance : IModKitPlugin, IServerPlugin, IInitializablePlugin
 	{
-		public const string Version = "1.0.0-alpha";
+		public const string Version = "1.0.1-alpha";
 
 		public string GetStatus()
 		{

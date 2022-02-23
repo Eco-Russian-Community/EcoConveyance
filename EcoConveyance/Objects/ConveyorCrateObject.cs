@@ -27,6 +27,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 	internal class ConveyorCrateObject : WorldObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Conveyor Crate");
+		public override LocString DisplayDescription => Localizer.DoStr("Used to transport items over conveyors");
 		public virtual Type RepresentedItemType => typeof(ConveyorCrateItem);
 
 		public readonly ThreadSafeAction OnDestroy = new ThreadSafeAction();

@@ -21,6 +21,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 	internal class ConveyorExporterObject : BaseConveyorObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Conveyor Exporter");
+		public override LocString DisplayDescription => Localizer.DoStr("Unpack items from arrived crates and put them into connected storage");
 		public virtual Type RepresentedItemType => typeof(ConveyorExporterItem);
 
 		protected override void OnCreate()

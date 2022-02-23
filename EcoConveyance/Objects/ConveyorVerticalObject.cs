@@ -22,7 +22,8 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[RequireComponent(typeof(ConveyorVerticalComponent))]
 	internal class ConveyorVerticalObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Conveyor Vertical");
+		public override LocString DisplayName => Localizer.DoStr("Vertical Conveyor");
+		public override LocString DisplayDescription => Localizer.DoStr("Transporting crates up or down, used to transport between floors");
 		public virtual Type RepresentedItemType => typeof(ConveyorVerticalItem);
 
 		protected override void OnCreate()
