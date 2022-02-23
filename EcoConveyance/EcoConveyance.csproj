@@ -2,12 +2,12 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
-		<Version>1.0.0-alpha</Version>
+		<Version>1.0.1-alpha</Version>
 		<Authors>Tavren</Authors>
 		<Company>Eco Russian Community</Company>
 		<Copyright>Eco Russian Community 2022</Copyright>
-		<PackageProjectUrl>https://github.com/Eco-Russian-Community</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Eco-Russian-Community</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Eco-Russian-Community/EcoConveyance</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Eco-Russian-Community/EcoConveyance</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RootNamespace>Eco.Mods.EcoConveyance</RootNamespace>
