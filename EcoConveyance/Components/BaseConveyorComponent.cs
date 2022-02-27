@@ -83,7 +83,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				foreach(Direction dir in this.OutputDirection)
 				{
 					if (Direction.Unknown.Equals(dir) || Direction.None.Equals(dir)) { continue; }
-					Vector3i neededPosition = this.Parent.Position.Round + dir.ToVec();
+					Vector3i neededPosition = World.GetWrappedWorldPosition(this.Parent.Position.Round + dir.ToVec());
 					foreach (WorldObject worldObject in ServiceHolder<IWorldObjectManager>.Obj.GetObjectsWithin(this.Parent.Position, 1f))
 					{
 						if (worldObject.Equals(this.Parent)) { continue; }
@@ -164,6 +164,7 @@ namespace Eco.Mods.EcoConveyance.Components
 					{
 						this.CrateData = new CrateData(crate, sourceConveyor.Parent);
 						crate.OnDestroy.Add(this.OnCrateDestroy);
+						crate.Position = this.Parent.Position;
 						Timer timer = new Timer(new TimerCallback(this.Moved));
 						return timer.Change(1000, Timeout.Infinite);
 					}
@@ -180,7 +181,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			{
 				Timer t = (Timer)timer;
 				t.Dispose();
-				this.CrateData.Crate.Position = this.Parent.Position;
+				//this.CrateData.Crate.Position = this.Parent.Position;
 				this.CrateArrived();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
