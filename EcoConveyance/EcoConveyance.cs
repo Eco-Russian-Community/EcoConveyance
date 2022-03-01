@@ -1,22 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Eco.Core.Plugins.Interfaces;
 using Eco.Core.Utils;
+using Eco.Mods.EcoConveyance.Components;
+using Eco.Mods.EcoConveyance.Utils;
+using Eco.Shared.Utils;
 
 namespace Eco.Mods.EcoConveyance
 {
-	public class EcoConveyance : IModInit, IServerPlugin
+	public class EcoConveyance : IModKitPlugin, IInitializablePlugin, IShutdownablePlugin
 	{
 		public const string Version = "1.0.1-alpha";
+		public static bool IsShutdown { get; private set; }
 
-		public string GetStatus()
+		public Task ShutdownAsync()
 		{
-			return $"{this} v{Version}";
+			DebuggingUtils.LogWarningLine("EcoConveyance: Prepare to shutdown");
+			IsShutdown = true;
+			return Task.CompletedTask;
 		}
 
-		public override string ToString()
+        public string GetStatus() => $"v{Version}";
+		public override string ToString() => "EcoConveyance";
+
+		public void Initialize(TimedTask timer)
 		{
-			return "Eco.Mods.EcoConveyance";
+			BaseConveyorComponent.IsShutdown = false;
+			//throw new NotImplementedException();
 		}
 	}
 }

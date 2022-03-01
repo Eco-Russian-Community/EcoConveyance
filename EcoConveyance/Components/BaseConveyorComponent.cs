@@ -28,6 +28,8 @@ namespace Eco.Mods.EcoConveyance.Components
 		public bool Operating => this._op;
 		protected bool _op = true;
 
+		public static bool IsShutdown { get; internal set; } = false;
+
 		[Serialized] protected CrateData CrateData;
 
 		private readonly Object _operationLock = new Object();
@@ -59,7 +61,7 @@ namespace Eco.Mods.EcoConveyance.Components
 		//	base.Tick();
 		//	try
 		//	{
-				
+		//		Log.WriteWarningLineLocStr("BaseConveyorComponent: Tick()");
 		//	}
 		//	catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		//}
@@ -135,7 +137,8 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		protected void TryMoveOut(Direction direction, BaseConveyorComponent conveyor)
 		{
-			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: TryMoveOut{direction}");
+			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: TryMoveOut({direction})");
+			if (EcoConveyance.IsShutdown) { DebuggingUtils.LogWarningLine("BaseConveyorComponent: Prepare to shutdown, stop operating"); return; }
 			try
 			{
 				if (conveyor.CanReceive && conveyor.Operating && conveyor.ReceiveCrate(this.CrateData.Crate, this))
@@ -146,7 +149,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				}
 				else
 				{
-					DebuggingUtils.LogWarningLine($"BaseConveyorComponent: TryMoveOut{direction} but DestinationConveyor({conveyor}) is not operating or busy!");
+					DebuggingUtils.LogWarningLine($"BaseConveyorComponent: TryMoveOut({direction}) but DestinationConveyor({conveyor}) is not operating or busy!");
 					this.CrateStuck.Invoke();
 				}
 			}
