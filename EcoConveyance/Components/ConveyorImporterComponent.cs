@@ -56,10 +56,11 @@ namespace Eco.Mods.EcoConveyance.Components
 						ItemStack stack = StorageUtils.TryGetItemStack(storage);
 						if (stack != null && stack.Item != null && this.CrateData == null)
 						{
-							this.CrateData = new CrateData(SpawnCrate(), this.Parent);
-							Core.Utils.Result result = storage.Inventory.TryMoveItems<Item>(stack.Item.Type, stack.Quantity, this.CrateData.Crate.Storage.Storage);
+							ConveyorCrateObject crate = SpawnCrate();
+							this.CrateData = new CrateData(crate, this.Parent);
+							Core.Utils.Result result = storage.Inventory.TryMoveItems<Item>(stack.Item.Type, stack.Quantity, crate.Storage.Storage);
 							if (result.Success) { break; }
-							if (result.Failed) { this.DestroyCrate(); }
+							if (result.Failed) { this.DestroyCrate(); } //TODO: Probably make crate obj reusable
 						}
 					}
 				}
@@ -69,7 +70,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		private ConveyorCrateObject SpawnCrate()
 		{
-			WorldObject obj = (WorldObject)Activator.CreateInstance(typeof(ConveyorCrateObject), true);
+			ConveyorCrateObject obj = (ConveyorCrateObject)Activator.CreateInstance(typeof(ConveyorCrateObject), true);
 			if (obj == null) { return null; }
 			DebuggingUtils.LogInfoLine($"ConveyorImporterComponent: SpawnCrate({obj})");
 			return (ConveyorCrateObject)ServiceHolder<IWorldObjectManager>.Obj.Add(obj, this.Parent.Creator, this.Parent.Position, Quaternion.Identity);

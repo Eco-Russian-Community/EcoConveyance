@@ -36,23 +36,12 @@ namespace Eco.Mods.EcoConveyance.Components
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
 
-		//TODO: Move logic into Tick()
-		//public override void Tick()
-		//{
-		//	base.Tick();
-		//	try
-		//	{
-				
-		//	}
-		//	catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
-		//}
-
 		protected override void CrateArrived()
 		{
 			DebuggingUtils.LogInfoLine("ConveyorExporterComponent: CrateArrived()");
 			try
 			{
-				this.TryMoveOut();
+				this.CrateStuck.Invoke();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
