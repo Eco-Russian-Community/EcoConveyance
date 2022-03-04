@@ -27,6 +27,12 @@ namespace Eco.Mods.EcoConveyance
 			this._source = source;
 		}
 
+		public CrateData ChangeSource(BaseConveyorObject source)
+		{
+			this._source = source;
+			return this;
+		}
+
 		public Direction GetSourceDirection(Vector3i thisPosition) => WorldPosition3i.GetDelta(this.Source.Position3i, thisPosition).ToDir();
 
 		public override string ToString()

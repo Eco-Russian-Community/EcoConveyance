@@ -18,7 +18,7 @@ namespace Eco.Mods.EcoConveyance
 		{
 			DebuggingUtils.LogWarningLine("EcoConveyance: Prepare to shutdown");
 			IsShutdown = true;
-			return Task.CompletedTask;
+			return Task.Delay(TimeSpan.FromSeconds(5));
 		}
 
         public string GetStatus() => $"v{Version}";

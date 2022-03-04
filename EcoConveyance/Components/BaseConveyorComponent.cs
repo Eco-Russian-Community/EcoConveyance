@@ -26,7 +26,7 @@ namespace Eco.Mods.EcoConveyance.Components
 		public virtual bool CanReceive { get; } = true;
 
 		public bool Operating => this._op;
-		protected bool _op = true;
+		protected bool _op = false;
 
 		public static bool IsShutdown { get; internal set; } = false;
 
@@ -54,6 +54,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: Initialize(\n\tdirection: {string.Join(',', this.OutputDirection)}\n\tdestination: {string.Join(',', this.DestinationConveyor)}\n\tconveyorCrate: {this.CrateData})");
+			this._op = true;
 		}
 
 		//public override void Tick()
@@ -103,37 +104,9 @@ namespace Eco.Mods.EcoConveyance.Components
 						}
 					}
 				}
-
-				//Block block = World.GetBlock(World.GetWrappedWorldPosition(this.Parent.Position.Round + this.OutputDirection.ToVec()));
-				//if (block == null || block is not WorldObjectBlock objBlock) { return; }
-				//WorldObject obj = objBlock.WorldObjectHandle.Object;
-				//if (obj is ConveyorWorldObject conveyor)
-				//{
-				//	this.DestinationConveyor = conveyor;
-				//	this.DestinationConveyor.OnDestroy.Add(this.OnDestinationDestroy);
-				//	Log.WriteWarningLineLocStr($"BaseConveyorComponent: UpdateDestination [{this.DestinationConveyor}]");
-				//	//IEnumerable<ConveyorComponent> components = obj.GetComponents<ConveyorComponent>();
-				//	//foreach (ConveyorComponent component in components)
-				//	//{
-
-				//	//}
-				//}
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
-
-		//public void UpdateNearby()
-		//{
-		//	foreach (DirectionAxis dir in Enum.GetValues(typeof(DirectionAxis)))
-		//	{
-		//		Block block = World.GetBlock(World.GetWrappedWorldPosition(this.Parent.Position.Round + dir.ToVec()));
-		//		if (block == null || block is not WorldObjectBlock objBlock) { return; }
-		//		WorldObject obj = objBlock.WorldObjectHandle.Object;
-		//		if (obj is not ConveyorObject conveyor) { return; }
-
-
-		//	}
-		//}
 
 		protected void TryMoveOut(Direction direction, BaseConveyorComponent conveyor)
 		{
@@ -141,7 +114,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			if (EcoConveyance.IsShutdown) { DebuggingUtils.LogWarningLine("BaseConveyorComponent: Prepare to shutdown, stop operating"); return; }
 			try
 			{
-				if (conveyor.CanReceive && conveyor.Operating && conveyor.ReceiveCrate(this.CrateData.Crate, this))
+				if (conveyor.CanReceive && conveyor.Operating && conveyor.ReceiveCrate(this.CrateData, (BaseConveyorObject)this.Parent))
 				{
 					this.CrateData.Crate.TriggerAnimatedEvent($"Move{direction}");
 					this.CrateData.Crate.OnDestroy.Remove(this.OnCrateDestroy);
@@ -157,17 +130,17 @@ namespace Eco.Mods.EcoConveyance.Components
 		}
 
 		/// <summary>Called from another conveyor when it try to move crate to this conveyor.</summary>
-		public bool ReceiveCrate(ConveyorCrateObject crate, BaseConveyorComponent sourceConveyor)
+		public bool ReceiveCrate(CrateData crateData, BaseConveyorObject sourceConveyor)
 		{
 			try
 			{
 				lock(this._operationLock)
 				{
-					if (this.CrateData == null)
+					if (this.CrateData == null && !EcoConveyance.IsShutdown)
 					{
-						this.CrateData = new CrateData(crate, sourceConveyor.Parent);
-						crate.OnDestroy.Add(this.OnCrateDestroy);
-						crate.Position = this.Parent.Position;
+						this.CrateData = crateData.ChangeSource(sourceConveyor);
+						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
+						this.CrateData.Crate.Position = this.Parent.Position;
 						Timer timer = new Timer(new TimerCallback(this.Moved));
 						return timer.Change(1000, Timeout.Infinite);
 					}
