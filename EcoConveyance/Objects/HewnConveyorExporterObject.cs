@@ -18,11 +18,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[Serialized]
 	[RequireComponent(typeof(ConveyorExporterComponent))]
 	[RequireComponent(typeof(SolidGroundComponent))]
-	internal class ConveyorExporterObject : BaseConveyorObject, IRepresentsItem
+	internal class HewnConveyorExporterObject : BaseConveyorObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Conveyor Exporter");
 		public override LocString DisplayDescription => Localizer.DoStr("Unpack items from arrived crates and put them into connected storage");
-		public virtual Type RepresentedItemType => typeof(ConveyorExporterItem);
+		public virtual Type RepresentedItemType => typeof(HewnConveyorExporterItem);
 
 		protected override void OnCreate()
 		{

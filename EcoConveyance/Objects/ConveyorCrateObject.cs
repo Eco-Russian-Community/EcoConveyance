@@ -2,6 +2,7 @@
 using Eco.Core.Utils;
 using Eco.Gameplay.Components;
 using Eco.Gameplay.Components.Auth;
+using Eco.Gameplay.GameActions;
 using Eco.Gameplay.Interactions;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
@@ -11,6 +12,7 @@ using Eco.Mods.EcoConveyance.Components;
 using Eco.Mods.EcoConveyance.Utils;
 using Eco.Shared.Items;
 using Eco.Shared.Localization;
+using Eco.Shared.Math;
 using Eco.Shared.Networking;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
@@ -24,6 +26,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(PublicStorageComponent))]
+	[RequireComponent(typeof(PropertyAuthComponent))]
 	internal class ConveyorCrateObject : WorldObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Conveyor Crate");

@@ -1,5 +1,6 @@
 ﻿using Eco.Core.Items;
 using Eco.Gameplay.Items;
+using Eco.Gameplay.Objects;
 using Eco.Mods.EcoConveyance.Objects;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
@@ -13,10 +14,11 @@ using System.Threading.Tasks;
 namespace Eco.Mods.EcoConveyance
 {
 	[Serialized]
-	[LocDisplayName("Conveyor"), Tag("EcoConveyance")]
-	internal class ConveyorItem : WorldObjectItem<ConveyorObject>
+	[Weight(2000), MaxStackSize(10), Carried]
+	[LocDisplayName("Hewn Conveyor Line"), Tag("EcoConveyance"), Tag("HewnConveyor")]
+	internal class HewnConveyorItem : WorldObjectItem<HewnConveyorObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Conveyor");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Hewn Conveyor Line");
 		public override LocString DisplayDescription => Localizer.DoStr("Conveyor used for transporting crates in one direction");
 	}
 
@@ -37,18 +39,20 @@ namespace Eco.Mods.EcoConveyance
 	}
 
 	[Serialized]
-	[LocDisplayName("Conveyor Importer"), Tag("EcoConveyance")]
-	internal class ConveyorImporterItem : WorldObjectItem<ConveyorImporterObject>
+	[Weight(4000), MaxStackSize(5), Carried]
+	[LocDisplayName("Hewn Conveyor Importer"), Tag("EcoConveyance"), Tag("HewnConveyor")]
+	internal class HewnConveyorImporterItem : WorldObjectItem<HewnConveyorImporterObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Conveyor Importer");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Hewn Conveyor Importer");
 		public override LocString DisplayDescription => Localizer.DoStr("Machine for importing items from connected storage, packing them into crate and sends over conveyor");
 	}
 
 	[Serialized]
-	[LocDisplayName("Conveyor Exporter"), Tag("EcoConveyance")]
-	internal class ConveyorExporterItem : WorldObjectItem<ConveyorExporterObject>
+	[Weight(4000), MaxStackSize(5), Carried]
+	[LocDisplayName("Hewn Conveyor Exporter"), Tag("EcoConveyance"), Tag("HewnConveyor")]
+	internal class HewnConveyorExporterItem : WorldObjectItem<HewnConveyorExporterObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Conveyor Exporter");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Hewn Conveyor Exporter");
 		public override LocString DisplayDescription => Localizer.DoStr("Machine for exporting, unpack items from arrived crates and put them into connected storage");
 	}
 
@@ -58,6 +62,14 @@ namespace Eco.Mods.EcoConveyance
 	{
 		public override LocString DisplayNamePlural => Localizer.DoStr("Conveyor Crate");
 		public override LocString DisplayDescription => Localizer.DoStr("Used to transport items over conveyors");
-		public override bool PreventUseWithCarriedItems => true;
+	}
+
+	[Serialized]
+	[MaxStackSize(100)]
+	[LocDisplayName("Hewn Conveyor Roller"), Tag("EcoConveyance")]
+	internal class HewnConveyorRollerItem : Item
+	{
+		public override LocString DisplayNamePlural => Localizer.DoStr("Hewn Conveyor Roller");
+		public override LocString DisplayDescription => Localizer.DoStr("Used to make Hewn Conveyor Line");
 	}
 }
