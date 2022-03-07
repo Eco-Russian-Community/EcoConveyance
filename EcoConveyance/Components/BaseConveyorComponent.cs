@@ -30,7 +30,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		public static bool IsShutdown { get; internal set; } = false;
 
-		[Serialized] protected CrateData CrateData;
+		[Serialized] protected volatile CrateData CrateData;
 
 		private readonly Object _operationLock = new Object();
 		public readonly ThreadSafeAction CrateStuck = new ThreadSafeAction();
@@ -171,7 +171,6 @@ namespace Eco.Mods.EcoConveyance.Components
 				{
 					DebuggingUtils.LogInfoLine($"DestroyCrate: {this.CrateData.Crate}");
 					this.CrateData.Crate.Destroy();
-					this.CrateData = null;
 				}
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }

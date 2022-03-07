@@ -54,20 +54,24 @@ namespace Eco.Mods.EcoConveyance.Components
 				if (this.CrateData != null && this.CrateData.Crate.Storage != null)
 				{
 					ConveyorCrateObject crate = this.CrateData.Crate;
-					if (crate.Storage.Inventory.IsEmpty) { this.DestroyCrate(); return; } //Get empty crate, destroy it
-
-					ItemStack stack = StorageUtils.TryGetItemStack(crate.Storage);
-					if (stack == null || stack.Item == null) { this.DestroyCrate(); return; } //Get empty crate, destroy it
+					Inventory crateInventory = crate.Storage.Inventory;
+					if (crateInventory.IsEmpty) { this.DestroyCrate(); return; } //Get empty crate, destroy it
 
 					IEnumerable<StorageComponent> linkedStorages = this.link.GetEnabledLinkedComponents(this.Parent.Creator);
-					if (linkedStorages.Count() == 0) { this.CrateStuck.Invoke(); return; }
-					foreach (StorageComponent storage in linkedStorages)
+					if (linkedStorages.Count() == 0) { this.CrateStuck.Invoke(); return; } //No storage linked, try again
+
+					IEnumerable<ItemStack> stacks = crateInventory.NonEmptyStacks;
+					foreach (ItemStack stack in stacks)
 					{
-						Core.Utils.Result result = crate.Storage.Inventory.TryMoveItems<Item>(stack.Item.Type, stack.Quantity, storage.Inventory);
-						if (result.Success) { this.DestroyCrate(); break; }
+						foreach (StorageComponent storage in linkedStorages)
+						{
+							Core.Utils.Result result = crateInventory.TryMoveItems<Item>(stack.Item.Type, stack.Quantity, storage.Inventory);
+							if (result.Success) { break; }
+						}
 					}
+					//Destroy crate if it empty or try empty it again
+					if (crateInventory.IsEmpty) { this.DestroyCrate(); } else { this.CrateStuck.Invoke(); }
 				}
-				if(this.CrateData != null) { this.CrateStuck.Invoke(); }
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
