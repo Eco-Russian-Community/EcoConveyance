@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Eco.Mods.EcoConveyance
 {
-	[RequiresSkill(typeof(CarpenterSkill), 2)]
+	[RequiresSkill(typeof(CarpentrySkill), 2)]
 	internal class HewnConveyorRollerRecipe : RecipeFamily
 	{
 		public HewnConveyorRollerRecipe()
@@ -30,7 +30,7 @@ namespace Eco.Mods.EcoConveyance
 				});
 			this.Recipes = new List<Recipe> { recipe };
 			this.ExperienceOnCraft = 0.5f;
-			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(CarpenterSkill));
+			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(CarpentrySkill));
 			this.CraftMinutes = CreateCraftTimeValue(2f);
 			this.Initialize(Localizer.DoStr("Hewn Conveyor Roller"), typeof(HewnConveyorRollerRecipe));
 			CraftingComponent.AddRecipe(typeof(CarpentryTableObject), this);
@@ -72,8 +72,8 @@ namespace Eco.Mods.EcoConveyance
 		{
 			Recipe recipe = new Recipe();
 			recipe.Init(
-				"HewnConveyorLine",
-				Localizer.DoStr("Hewn Conveyor Line"),
+				"HewnConveyorImporter",
+				Localizer.DoStr("Hewn Conveyor Importer"),
 				new List<IngredientElement>
 				{
 					new IngredientElement(typeof(HewnConveyorItem), 1, true),
@@ -87,7 +87,7 @@ namespace Eco.Mods.EcoConveyance
 			this.ExperienceOnCraft = 0.5f;
 			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(BasicEngineeringSkill));
 			this.CraftMinutes = CreateCraftTimeValue(3f);
-			this.Initialize(Localizer.DoStr("Hewn Conveyor Line"), typeof(HewnConveyorImporterRecipe));
+			this.Initialize(Localizer.DoStr("Hewn Conveyor Importer"), typeof(HewnConveyorImporterRecipe));
 			CraftingComponent.AddRecipe(typeof(WorkbenchObject), this);
 		}
 	}
@@ -99,8 +99,8 @@ namespace Eco.Mods.EcoConveyance
 		{
 			Recipe recipe = new Recipe();
 			recipe.Init(
-				"HewnConveyorLine",
-				Localizer.DoStr("Hewn Conveyor Line"),
+				"HewnConveyorExporter",
+				Localizer.DoStr("Hewn Conveyor Exporter"),
 				new List<IngredientElement>
 				{
 					new IngredientElement(typeof(HewnConveyorItem), 1, true),
@@ -114,7 +114,7 @@ namespace Eco.Mods.EcoConveyance
 			this.ExperienceOnCraft = 0.5f;
 			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(BasicEngineeringSkill));
 			this.CraftMinutes = CreateCraftTimeValue(3f);
-			this.Initialize(Localizer.DoStr("Hewn Conveyor Line"), typeof(HewnConveyorExporterRecipe));
+			this.Initialize(Localizer.DoStr("Hewn Conveyor Exporter"), typeof(HewnConveyorExporterRecipe));
 			CraftingComponent.AddRecipe(typeof(WorkbenchObject), this);
 		}
 	}

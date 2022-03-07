@@ -20,7 +20,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[RequireComponent(typeof(SolidGroundComponent))]
 	internal class HewnConveyorImporterObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Conveyor Importer");
+		public override LocString DisplayName => Localizer.DoStr("Hewn Conveyor Importer");
 		public override LocString DisplayDescription => Localizer.DoStr("Imports items from connected storage, packing them into crate and sends over conveyor");
 		public virtual Type RepresentedItemType => typeof(HewnConveyorImporterItem);
 
