@@ -27,7 +27,17 @@ namespace Eco.Mods.EcoConveyance.Objects
 		protected override void OnCreate()
 		{
 			base.OnCreate();
-			this.GetComponent<ConveyorExporterComponent>().OutputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3.Back)) };
+			Direction facing = DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3.Back));
+			List<Direction> list = new List<Direction>() {
+				Direction.Left,
+				Direction.Right,
+				Direction.Back,
+				Direction.Forward
+			};
+			list.Remove(facing);
+			ConveyorExporterComponent conveyor = this.GetComponent<ConveyorExporterComponent>();
+			conveyor.InputDirection = list.ToArray();
+			conveyor.OutputDirection = new Direction[] { facing };
 		}
 
 		protected override void Initialize()

@@ -27,7 +27,9 @@ namespace Eco.Mods.EcoConveyance.Objects
 		protected override void OnCreate()
 		{
 			base.OnCreate();
-			this.GetComponent<ConveyorImporterComponent>().OutputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3.Back)) };
+			ConveyorImporterComponent conveyor = this.GetComponent<ConveyorImporterComponent>();
+			conveyor.InputDirection = new Direction[] { Direction.None };
+			conveyor.OutputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3.Back)) };
 		}
 
 		protected override void Initialize()
