@@ -113,7 +113,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				if (conveyor.CanReceive &&
-					conveyor.Operating &&
+					conveyor.Parent.Enabled && conveyor.Parent.Operating &&
 					conveyor.CanReceiveFrom(this) &&
 					conveyor.ReceiveCrate(this.CrateData, this))
 				{

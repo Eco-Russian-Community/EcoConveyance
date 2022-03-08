@@ -22,6 +22,7 @@ namespace Eco.Mods.EcoConveyance.Components
 	[Serialized]
 	[RequireComponent(typeof(LinkComponent))]
 	[RequireComponent(typeof(PropertyAuthComponent))]
+	[RequireComponent(typeof(OnOffComponent))]
 	internal class ConveyorImporterComponent : BaseConveyorComponent
 	{
 		public override bool CanReceive => false;
