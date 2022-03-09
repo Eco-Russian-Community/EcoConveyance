@@ -1,4 +1,6 @@
-﻿using Eco.Mods.EcoConveyance.Objects;
+﻿using Eco.Gameplay.Components.Auth;
+using Eco.Gameplay.Objects;
+using Eco.Mods.EcoConveyance.Objects;
 using Eco.Mods.EcoConveyance.Utils;
 using Eco.Shared.Math;
 using Eco.Shared.Serialization;
@@ -9,6 +11,7 @@ using System.Linq;
 namespace Eco.Mods.EcoConveyance.Components
 {
 	[Serialized]
+	[RequireComponent(typeof(PropertyAuthComponent))]
 	internal class ConveyorVerticalComponent : BaseConveyorComponent
 	{
 		public override void Initialize()

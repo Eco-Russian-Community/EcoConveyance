@@ -18,6 +18,8 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[Serialized]
 	[RequireComponent(typeof(ConveyorImporterComponent))]
 	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(PowerGridComponent))]
+	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class HewnConveyorImporterObject : BaseConveyorObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Hewn Conveyor Importer");
@@ -36,6 +38,8 @@ namespace Eco.Mods.EcoConveyance.Objects
 		{
 			base.Initialize();
 			this.GetComponent<LinkComponent>().Initialize(1);
+			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
+			this.GetComponent<PowerConsumptionComponent>().Initialize(20);
 		}
 	}
 }

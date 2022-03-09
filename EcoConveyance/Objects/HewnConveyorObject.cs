@@ -13,6 +13,8 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[Serialized]
 	[RequireComponent(typeof(ConveyorComponent))]
 	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(PowerGridComponent))]
+	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class HewnConveyorObject : BaseConveyorObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Hewn Conveyor Line");
@@ -30,6 +32,13 @@ namespace Eco.Mods.EcoConveyance.Objects
 				Direction.Forward
 			};
 			conveyor.OutputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.Forward) };
+		}
+
+		protected override void Initialize()
+		{
+			base.Initialize();
+			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
+			this.GetComponent<PowerConsumptionComponent>().Initialize(10);
 		}
 	}
 }
