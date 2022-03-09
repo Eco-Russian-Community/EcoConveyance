@@ -47,7 +47,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 			base.Initialize();
 			this.GetComponent<LinkComponent>().Initialize(1);
 			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
-			this.GetComponent<PowerConsumptionComponent>().Initialize(15);
+			this.GetComponent<PowerConsumptionComponent>().Initialize(10);
 		}
 	}
 }
