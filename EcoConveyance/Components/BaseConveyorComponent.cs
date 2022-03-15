@@ -15,6 +15,7 @@ namespace Eco.Mods.EcoConveyance.Components
 {
 	using World = Eco.World.World;
 
+	[Serialized]
 	internal abstract class BaseConveyorComponent : WorldObjectComponent, IOperatingWorldObjectComponent, ITickOnDemand
 	{
 		[Serialized] public Direction[] OutputDirection { get; set; }
@@ -80,6 +81,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			{
 				this.DestinationConveyor.Clear();
 				if (this.OutputDirection == null) { return; }
+				Direction thisDirection = DirectionExtensions.FacingDir(this.Parent.Rotation.Forward);
 
 				foreach (Direction dir in this.OutputDirection)
 				{
@@ -93,6 +95,10 @@ namespace Eco.Mods.EcoConveyance.Components
 						{
 							this.DestinationConveyor.Add(dir, conveyor);
 							conveyor.OnDestroy.Add(this.OnDestinationDestroy);
+							//Detection of placing in row
+							Direction dstDirection = DirectionExtensions.FacingDir(conveyor.Rotation.Forward);
+							this.Parent.SetAnimatedState("StraightConnection", thisDirection.Equals(dstDirection));
+							//
 							DebuggingUtils.LogInfoLine($"BaseConveyorComponent: UpdateDestination Add[{dir}={conveyor}]");
 							//IEnumerable<ConveyorComponent> components = obj.GetComponents<ConveyorComponent>();
 							//foreach (ConveyorComponent component in components)
