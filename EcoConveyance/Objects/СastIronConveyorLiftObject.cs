@@ -20,11 +20,13 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorVerticalComponent))]
-	internal class ConveyorVerticalObject : BaseConveyorObject, IRepresentsItem
+	[RequireComponent(typeof(PowerGridComponent))]
+	[RequireComponent(typeof(PowerConsumptionComponent))]
+	internal class СastIronConveyorLiftObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Vertical Conveyor");
+		public override LocString DisplayName => Localizer.DoStr("Сast Iron Conveyor Lift");
 		public override LocString DisplayDescription => Localizer.DoStr("Transporting crates up or down, used to transport between floors");
-		public virtual Type RepresentedItemType => typeof(ConveyorVerticalItem);
+		public virtual Type RepresentedItemType => typeof(СastIronConveyorLiftItem);
 
 		protected override void OnCreate()
 		{
@@ -32,6 +34,13 @@ namespace Eco.Mods.EcoConveyance.Objects
 			ConveyorVerticalComponent conveyor = this.GetComponent<ConveyorVerticalComponent>();
 			conveyor.InputDirection = new Direction[] { Direction.Up, Direction.Down };
 			conveyor.OutputDirection = new Direction[] { Direction.Up, Direction.Down };
+		}
+
+		protected override void Initialize()
+		{
+			base.Initialize();
+			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
+			this.GetComponent<PowerConsumptionComponent>().Initialize(5);
 		}
 	}
 }
