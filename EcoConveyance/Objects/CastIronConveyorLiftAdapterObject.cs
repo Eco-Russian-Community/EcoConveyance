@@ -20,11 +20,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorVerticalEndComponent))]
-	internal class СastIronConveyorLiftAdapterObject : BaseConveyorObject, IRepresentsItem
+	internal class CastIronConveyorLiftAdapterObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Сast Iron Conveyor Lift Adapter");
+		public override LocString DisplayName => Localizer.DoStr("Cast Iron Conveyor Lift Adapter");
 		public override LocString DisplayDescription => Localizer.DoStr("Entry and exit point for lift conveyors, put it at the top and bottom of lift conveyors and connect conveyor at the side");
-		public virtual Type RepresentedItemType => typeof(СastIronConveyorLiftAdapterItem);
+		public virtual Type RepresentedItemType => typeof(CastIronConveyorLiftAdapterItem);
 
 		protected override void OnCreate()
 		{

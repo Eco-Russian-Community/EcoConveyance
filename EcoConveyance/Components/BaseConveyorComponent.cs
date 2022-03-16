@@ -22,6 +22,12 @@ namespace Eco.Mods.EcoConveyance.Components
 		[Serialized] public Direction[] InputDirection { get; set; }
 		public Dictionary<Direction, BaseConveyorObject> DestinationConveyor { get; } = new Dictionary<Direction, BaseConveyorObject>();
 		public virtual bool CanReceive { get; } = true;
+		public float Speed
+		{
+			get { return 1000f / this.ConveyorSpeed; }
+			set { this.ConveyorSpeed = (int)Math.Round(1000f / value); }
+		}
+		public int ConveyorSpeed { get; private set; } = 1000;
 
 		public bool Operating => this._op;
 		protected bool _op = false;
@@ -123,9 +129,12 @@ namespace Eco.Mods.EcoConveyance.Components
 					conveyor.CanReceiveFrom(this) &&
 					conveyor.ReceiveCrate(this.CrateData, this))
 				{
+					this.CrateData.Crate.SetAnimatedState("Speed", this.Speed);
 					this.CrateData.Crate.TriggerAnimatedEvent($"Move{direction}");
 					this.CrateData.Crate.OnDestroy.Remove(this.OnCrateDestroy);
 					this.CrateData = null;
+
+					DebuggingUtils.LogErrorLine($"BaseConveyorComponent: MoveOut with speed [{this.Speed}][{this.ConveyorSpeed}]");
 				}
 				else
 				{
@@ -149,7 +158,7 @@ namespace Eco.Mods.EcoConveyance.Components
 						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
 						this.CrateData.Crate.Position = this.Parent.Position;
 						Timer timer = new Timer(new TimerCallback(this.Moved));
-						return timer.Change(1000, Timeout.Infinite);
+						return timer.Change(sourceConveyor.ConveyorSpeed, Timeout.Infinite);
 					}
 				}
 			}

@@ -15,11 +15,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[RequireComponent(typeof(SolidGroundComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
-	internal class СastIronConveyorObject : BaseConveyorObject, IRepresentsItem
+	internal class CastIronConveyorObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Сast Iron Conveyor Line");
+		public override LocString DisplayName => Localizer.DoStr("Cast Iron Conveyor Line");
 		public override LocString DisplayDescription => Localizer.DoStr("Transporting crates in one direction");
-		public virtual Type RepresentedItemType => typeof(СastIronConveyorItem);
+		public virtual Type RepresentedItemType => typeof(CastIronConveyorItem);
 
 		protected override void OnCreate()
 		{
@@ -39,6 +39,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 			base.Initialize();
 			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
 			this.GetComponent<PowerConsumptionComponent>().Initialize(2);
+			this.GetComponent<ConveyorComponent>().Speed = 1f;
 		}
 	}
 }

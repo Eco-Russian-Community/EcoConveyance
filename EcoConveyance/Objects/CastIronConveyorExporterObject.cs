@@ -20,11 +20,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[RequireComponent(typeof(SolidGroundComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
-	internal class СastIronConveyorExporterObject : BaseConveyorObject, IRepresentsItem
+	internal class CastIronConveyorExporterObject : BaseConveyorObject, IRepresentsItem
 	{
-		public override LocString DisplayName => Localizer.DoStr("Сast Iron Conveyor Exporter");
+		public override LocString DisplayName => Localizer.DoStr("Cast Iron Conveyor Exporter");
 		public override LocString DisplayDescription => Localizer.DoStr("Unpack items from arrived crates and put them into connected storage");
-		public virtual Type RepresentedItemType => typeof(СastIronConveyorExporterItem);
+		public virtual Type RepresentedItemType => typeof(CastIronConveyorExporterItem);
 
 		protected override void OnCreate()
 		{

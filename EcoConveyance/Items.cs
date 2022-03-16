@@ -58,78 +58,77 @@ namespace Eco.Mods.EcoConveyance
 		public override LocString DisplayDescription => Localizer.DoStr("Machine for exporting, unpack items from arrived crates and put them into connected storage");
 	}
 	#endregion
-	#region СastIronConveyor
+	#region CastIronConveyor
 	[Serialized]
 	[MaxStackSize(100)]
-	[LocDisplayName("Сast Iron Conveyor Roller"), Tag("EcoConveyance")]
-	internal class СastIronConveyorRollerItem : Item
+	[LocDisplayName("Cast Iron Conveyor Roller"), Tag("EcoConveyance")]
+	internal class CastIronConveyorRollerItem : Item
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Roller");
-		public override LocString DisplayDescription => Localizer.DoStr("Used to make Сast Iron Conveyor Line");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Roller");
+		public override LocString DisplayDescription => Localizer.DoStr("Used to make Cast Iron Conveyor Line");
 	}
 
 	[Serialized]
 	[MaxStackSize(100)]
-	[LocDisplayName("Сast Iron Profile"), Tag("EcoConveyance")]
-	internal class СastIronProfileItem : Item
+	[LocDisplayName("Cast Iron Profile"), Tag("EcoConveyance")]
+	internal class CastIronProfileItem : Item
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Profile");
-		public override LocString DisplayDescription => Localizer.DoStr("Used to make Сast Iron Conveyor Line");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Profile");
+		public override LocString DisplayDescription => Localizer.DoStr("Used to make Cast Iron Conveyor Line");
 	}
 
 	[Serialized]
 	[Weight(2000), MaxStackSize(5), Carried]
-	[LocDisplayName("Сast Iron Conveyor Frame"), Tag("EcoConveyance")]
-	internal class СastIronConveyorFrameItem : Item
+	[LocDisplayName("Cast Iron Conveyor Frame"), Tag("EcoConveyance")]
+	internal class CastIronConveyorFrameItem : Item
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Frame");
-		public override LocString DisplayDescription => Localizer.DoStr("Used to make Сast Iron Conveyor Line");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Frame");
+		public override LocString DisplayDescription => Localizer.DoStr("Used to make Cast Iron Conveyor Line");
 	}
 
 	[Serialized]
 	[Weight(3000), MaxStackSize(10), Carried]
-	[LocDisplayName("Сast Iron Conveyor Line"), Tag("EcoConveyance"), Tag("СastIronConveyor")]
-	internal class СastIronConveyorItem : WorldObjectItem<СastIronConveyorObject>
+	[LocDisplayName("Cast Iron Conveyor Line"), Tag("EcoConveyance"), Tag("CastIronConveyor")]
+	internal class CastIronConveyorItem : WorldObjectItem<CastIronConveyorObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Line");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Line");
 		public override LocString DisplayDescription => Localizer.DoStr("Conveyor used for transporting crates in one direction");
 	}
 
 	[Serialized]
 	[Weight(5000), MaxStackSize(5), Carried]
-	[LocDisplayName("Сast Iron Conveyor Importer"), Tag("EcoConveyance"), Tag("СastIronConveyor")]
-	internal class СastIronConveyorImporterItem : WorldObjectItem<СastIronConveyorImporterObject>
+	[LocDisplayName("Cast Iron Conveyor Importer"), Tag("EcoConveyance"), Tag("CastIronConveyor")]
+	internal class CastIronConveyorImporterItem : WorldObjectItem<CastIronConveyorImporterObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Importer");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Importer");
 		public override LocString DisplayDescription => Localizer.DoStr("Machine for importing items from connected storage, packing them into crate and sends over conveyor");
 	}
 
 	[Serialized]
 	[Weight(5000), MaxStackSize(5), Carried]
-	[LocDisplayName("Сast Iron Conveyor Exporter"), Tag("EcoConveyance"), Tag("СastIronConveyor")]
-	internal class СastIronConveyorExporterItem : WorldObjectItem<СastIronConveyorExporterObject>
+	[LocDisplayName("Cast Iron Conveyor Exporter"), Tag("EcoConveyance"), Tag("CastIronConveyor")]
+	internal class CastIronConveyorExporterItem : WorldObjectItem<CastIronConveyorExporterObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Exporter");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Exporter");
 		public override LocString DisplayDescription => Localizer.DoStr("Machine for exporting, unpack items from arrived crates and put them into connected storage");
 	}
 
 	[Serialized]
 	[Weight(4000), MaxStackSize(5), Carried]
-	[LocDisplayName("Сast Iron Conveyor Lift"), Tag("EcoConveyance"), Tag("СastIronConveyor")]
-	internal class СastIronConveyorLiftItem : WorldObjectItem<СastIronConveyorLiftObject>
+	[LocDisplayName("Cast Iron Conveyor Lift"), Tag("EcoConveyance"), Tag("CastIronConveyor")]
+	internal class CastIronConveyorLiftItem : WorldObjectItem<CastIronConveyorLiftObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Lift");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Lift");
 		public override LocString DisplayDescription => Localizer.DoStr("Conveyor used for transporting crates up or down, used to transport between floors");
 	}
 
 	[Serialized]
 	[Weight(4000), MaxStackSize(5), Carried]
-	[LocDisplayName("Сast Iron Conveyor Lift Adapter"), Tag("EcoConveyance"), Tag("СastIronConveyor")]
-	internal class СastIronConveyorLiftAdapterItem : WorldObjectItem<СastIronConveyorLiftAdapterObject>
+	[LocDisplayName("Cast Iron Conveyor Lift Adapter"), Tag("EcoConveyance"), Tag("CastIronConveyor")]
+	internal class CastIronConveyorLiftAdapterItem : WorldObjectItem<CastIronConveyorLiftAdapterObject>
 	{
-		public override LocString DisplayNamePlural => Localizer.DoStr("Сast Iron Conveyor Lift Adapter");
+		public override LocString DisplayNamePlural => Localizer.DoStr("Cast Iron Conveyor Lift Adapter");
 		public override LocString DisplayDescription => Localizer.DoStr("Entry and exit point for lift conveyors, put it at the top and bottom of lift conveyors and connect conveyor at the side");
 	}
 	#endregion
-
 }

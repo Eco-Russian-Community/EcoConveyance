@@ -46,6 +46,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
+				if(!this.Parent.Enabled || !this.Parent.Operating) { return; }
 				if (this.CrateData != null) { this.TryMoveOut(); }
 				else if(this.workDelay.DoUpdate)
 				{
