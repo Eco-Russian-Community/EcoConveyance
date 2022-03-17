@@ -6,24 +6,28 @@ using Eco.Shared.IoC;
 using Eco.Shared.Math;
 using Eco.Shared.Serialization;
 using Eco.Shared.Utils;
-using Eco.World.Blocks;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Eco.Mods.EcoConveyance.Components
 {
 	using World = Eco.World.World;
 
+	[Serialized]
 	internal abstract class BaseConveyorComponent : WorldObjectComponent, IOperatingWorldObjectComponent, ITickOnDemand
 	{
 		[Serialized] public Direction[] OutputDirection { get; set; }
-		public Dictionary<Direction, BaseConveyorObject> DestinationConveyor { get; } = new Dictionary<Direction,BaseConveyorObject>();
+		[Serialized] public Direction[] InputDirection { get; set; }
+		public Dictionary<Direction, BaseConveyorObject> DestinationConveyor { get; } = new Dictionary<Direction, BaseConveyorObject>();
 		public virtual bool CanReceive { get; } = true;
+		public float Speed
+		{
+			get { return 1000f / this.ConveyorSpeed; }
+			set { this.ConveyorSpeed = (int)Math.Round(1000f / value); }
+		}
+		public int ConveyorSpeed { get; private set; } = 1000;
 
 		public bool Operating => this._op;
 		protected bool _op = false;
@@ -34,6 +38,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		private readonly Object _operationLock = new Object();
 		public readonly ThreadSafeAction CrateStuck = new ThreadSafeAction();
+		public readonly ThreadSafeAction<BaseConveyorComponent> MovedOut = new ThreadSafeAction<BaseConveyorComponent>();
 
 		protected abstract void CrateArrived();
 		protected abstract void TryMoveOut(Direction direction);
@@ -44,7 +49,8 @@ namespace Eco.Mods.EcoConveyance.Components
 			base.Initialize();
 			try
 			{
-				if(this.OutputDirection == null) { this.OutputDirection = new Direction[] {Direction.Unknown}; }
+				if (this.OutputDirection == null) { this.OutputDirection = new Direction[] { Direction.Unknown }; }
+				if (this.InputDirection == null) { this.InputDirection = new Direction[] { Direction.Unknown }; }
 				this.CrateStuck.Add(this.OnCrateStuck);
 				if (this.CrateData != null)
 				{
@@ -54,7 +60,6 @@ namespace Eco.Mods.EcoConveyance.Components
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: Initialize(\n\tdirection: {string.Join(',', this.OutputDirection)}\n\tdestination: {string.Join(',', this.DestinationConveyor)}\n\tconveyorCrate: {this.CrateData})");
-			this._op = true;
 		}
 
 		//public override void Tick()
@@ -71,7 +76,7 @@ namespace Eco.Mods.EcoConveyance.Components
 		{
 			try
 			{
-				if (this.CrateData != null){ this.TryMoveOut(); }
+				if (this.CrateData != null) { this.TryMoveOut(); }
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
@@ -81,9 +86,10 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				this.DestinationConveyor.Clear();
-				if(this.OutputDirection == null) { return; }
+				if (this.OutputDirection == null) { return; }
+				Direction thisDirection = DirectionExtensions.FacingDir(this.Parent.Rotation.Forward);
 
-				foreach(Direction dir in this.OutputDirection)
+				foreach (Direction dir in this.OutputDirection)
 				{
 					if (Direction.Unknown.Equals(dir) || Direction.None.Equals(dir)) { continue; }
 					Vector3i neededPosition = World.GetWrappedWorldPosition(this.Parent.Position.Round + dir.ToVec());
@@ -95,6 +101,10 @@ namespace Eco.Mods.EcoConveyance.Components
 						{
 							this.DestinationConveyor.Add(dir, conveyor);
 							conveyor.OnDestroy.Add(this.OnDestinationDestroy);
+							//Detection of placing in row
+							Direction dstDirection = DirectionExtensions.FacingDir(conveyor.Rotation.Forward);
+							this.Parent.SetAnimatedState("StraightConnection", thisDirection.Equals(dstDirection));
+							//
 							DebuggingUtils.LogInfoLine($"BaseConveyorComponent: UpdateDestination Add[{dir}={conveyor}]");
 							//IEnumerable<ConveyorComponent> components = obj.GetComponents<ConveyorComponent>();
 							//foreach (ConveyorComponent component in components)
@@ -114,11 +124,19 @@ namespace Eco.Mods.EcoConveyance.Components
 			if (EcoConveyance.IsShutdown) { DebuggingUtils.LogWarningLine("BaseConveyorComponent: Prepare to shutdown, stop operating"); return; }
 			try
 			{
-				if (conveyor.CanReceive && conveyor.Operating && conveyor.ReceiveCrate(this.CrateData, (BaseConveyorObject)this.Parent))
+				if (conveyor.CanReceive &&
+					conveyor.Parent.Enabled && !conveyor.Parent.Operating &&
+					conveyor.CanReceiveFrom(this) &&
+					conveyor.ReceiveCrate(this.CrateData, this))
 				{
+					conveyor.MovedOut.Add(this.OnMovedOut);
+					this.Parent.TriggerAnimatedEvent($"MoveOut");
+					this.CrateData.Crate.SetAnimatedState("Speed", this.Speed);
 					this.CrateData.Crate.TriggerAnimatedEvent($"Move{direction}");
 					this.CrateData.Crate.OnDestroy.Remove(this.OnCrateDestroy);
 					this.CrateData = null;
+
+					DebuggingUtils.LogErrorLine($"BaseConveyorComponent: MoveOut with speed [{this.Speed}][{this.ConveyorSpeed}]");
 				}
 				else
 				{
@@ -130,19 +148,20 @@ namespace Eco.Mods.EcoConveyance.Components
 		}
 
 		/// <summary>Called from another conveyor when it try to move crate to this conveyor.</summary>
-		public bool ReceiveCrate(CrateData crateData, BaseConveyorObject sourceConveyor)
+		public bool ReceiveCrate(CrateData crateData, BaseConveyorComponent sourceConveyor)
 		{
 			try
 			{
-				lock(this._operationLock)
+				lock (this._operationLock)
 				{
 					if (this.CrateData == null && !EcoConveyance.IsShutdown)
 					{
+						this.Parent.TriggerAnimatedEvent($"ReceiveCrate");
 						this.CrateData = crateData.ChangeSource(sourceConveyor);
 						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
 						this.CrateData.Crate.Position = this.Parent.Position;
 						Timer timer = new Timer(new TimerCallback(this.Moved));
-						return timer.Change(1000, Timeout.Infinite);
+						return timer.Change(sourceConveyor.ConveyorSpeed, Timeout.Infinite);
 					}
 				}
 			}
@@ -158,9 +177,23 @@ namespace Eco.Mods.EcoConveyance.Components
 				Timer t = (Timer)timer;
 				t.Dispose();
 				//this.CrateData.Crate.Position = this.Parent.Position;
+				this.MovedOut.Invoke(this);
 				this.CrateArrived();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		}
+
+		protected virtual void OnMovedOut(BaseConveyorComponent conveyor)
+		{
+			conveyor.MovedOut.Remove(this.OnMovedOut);
+		}
+
+		public bool CanReceiveFrom(BaseConveyorComponent conveyor)
+		{
+			if (this.InputDirection.Contains(Direction.None)) { return false; }
+			if (this.InputDirection.Contains(Direction.Unknown)) { return true; }
+			Direction sourceDir = WorldPosition3i.GetDelta(this.Parent.Position3i, conveyor.Parent.Position3i).ToDir();
+			return this.InputDirection.Contains(sourceDir);
 		}
 
 		protected void DestroyCrate()
@@ -184,7 +217,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		protected void OnDestinationDestroy(BaseConveyorObject obj)
 		{
-			if(obj != null && this.DestinationConveyor.ContainsValue(obj))
+			if (obj != null && this.DestinationConveyor.ContainsValue(obj))
 			{
 				Direction dir = this.DestinationConveyor.FirstOrDefault(x => x.Value.Equals(obj)).Key;
 				this.DestinationConveyor.Remove(dir);
@@ -199,7 +232,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				this.DestroyCrate();
 				this.CrateStuck.Remove(this.OnCrateStuck);
 
-				foreach(BaseConveyorObject conveyor in this.DestinationConveyor.Values)
+				foreach (BaseConveyorObject conveyor in this.DestinationConveyor.Values)
 				{
 					conveyor.OnDestroy.Remove(this.OnDestinationDestroy);
 				}

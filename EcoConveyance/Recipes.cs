@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Eco.Mods.EcoConveyance
 {
+	#region HewnConveyor
 	[RequiresSkill(typeof(CarpentrySkill), 2)]
 	internal class HewnConveyorRollerRecipe : RecipeFamily
 	{
@@ -118,4 +119,225 @@ namespace Eco.Mods.EcoConveyance
 			CraftingComponent.AddRecipe(typeof(WorkbenchObject), this);
 		}
 	}
+	#endregion
+	#region CastIronConveyor
+	[RequiresSkill(typeof(MechanicsSkill), 2)]
+	internal class CastIronConveyorRollerRecipe : RecipeFamily
+	{
+		public CastIronConveyorRollerRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorRoller",
+				Localizer.DoStr("Cast Iron Conveyor Roller"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(IronBarItem), 3, true),
+					new IngredientElement("Fabric", 1, true),
+					new IngredientElement("Gear", 1, true),
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorRollerItem>(2)
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(4f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Roller"), typeof(CastIronConveyorRollerRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 2)]
+	internal class CastIronProfileRecipe : RecipeFamily
+	{
+		public CastIronProfileRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronProfile",
+				Localizer.DoStr("Cast Iron Profile"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(IronBarItem), 1, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronProfileItem>(5)
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(100, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(1f);
+			this.Initialize(Localizer.DoStr("Cast Iron Profile"), typeof(CastIronProfileRecipe));
+			CraftingComponent.AddRecipe(typeof(ScrewPressObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 3)]
+	internal class CastIronConveyorFrameRecipe : RecipeFamily
+	{
+		public CastIronConveyorFrameRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorFrame",
+				Localizer.DoStr("Cast Iron Conveyor Frame"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronProfileItem), 12, true),
+					new IngredientElement(typeof(ScrewsItem), 24, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorFrameItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(300, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(3f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Frame"), typeof(CastIronConveyorFrameRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 2)]
+	internal class CastIronConveyorRecipe : RecipeFamily
+	{
+		public CastIronConveyorRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyor",
+				Localizer.DoStr("Cast Iron Conveyor Line"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronProfileItem), 2, true),
+					new IngredientElement(typeof(CastIronConveyorRollerItem), 3, true),
+					new IngredientElement(typeof(OilItem), 3, true),
+					new IngredientElement(typeof(ScrewsItem), 7, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(500, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(5f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Line"), typeof(CastIronConveyorRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 2)]
+	internal class CastIronConveyorImporterRecipe : RecipeFamily
+	{
+		public CastIronConveyorImporterRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorImporter",
+				Localizer.DoStr("Cast Iron Conveyor Importer"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronConveyorItem), 1, true),
+					new IngredientElement(typeof(IronPlateItem), 5, true),
+					new IngredientElement(typeof(ScrewsItem), 24, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorImporterItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(500, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(5f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Importer"), typeof(CastIronConveyorImporterRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 2)]
+	internal class CastIronConveyorExporterRecipe : RecipeFamily
+	{
+		public CastIronConveyorExporterRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorExporter",
+				Localizer.DoStr("Cast Iron Conveyor Exporter"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronConveyorItem), 1, true),
+					new IngredientElement(typeof(IronPlateItem), 5, true),
+					new IngredientElement(typeof(ScrewsItem), 24, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorExporterItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(500, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(5f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Exporter"), typeof(CastIronConveyorExporterRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 3)]
+	internal class CastIronConveyorLiftRecipe : RecipeFamily
+	{
+		public CastIronConveyorLiftRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorLift",
+				Localizer.DoStr("Cast Iron Conveyor Lift"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronConveyorItem), 1, true),
+					new IngredientElement(typeof(CastIronConveyorFrameItem), 1, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorLiftItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(500, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(5f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Lift"), typeof(CastIronConveyorLiftRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+
+	[RequiresSkill(typeof(MechanicsSkill), 3)]
+	internal class CastIronConveyorLiftAdapterRecipe : RecipeFamily
+	{
+		public CastIronConveyorLiftAdapterRecipe()
+		{
+			Recipe recipe = new Recipe();
+			recipe.Init(
+				"CastIronConveyorLiftAdapter",
+				Localizer.DoStr("Cast Iron Conveyor Lift Adapter"),
+				new List<IngredientElement>
+				{
+					new IngredientElement(typeof(CastIronConveyorLiftItem), 1, true)
+				},
+				new List<CraftingElement>
+				{
+					new CraftingElement<CastIronConveyorLiftAdapterItem>()
+				});
+			this.Recipes = new List<Recipe> { recipe };
+			this.ExperienceOnCraft = 1f;
+			this.LaborInCalories = CreateLaborInCaloriesValue(500, typeof(MechanicsSkill));
+			this.CraftMinutes = CreateCraftTimeValue(5f);
+			this.Initialize(Localizer.DoStr("Cast Iron Conveyor Lift Adapter"), typeof(CastIronConveyorLiftAdapterRecipe));
+			CraftingComponent.AddRecipe(typeof(MachinistTableObject), this);
+		}
+	}
+	#endregion
 }

@@ -1,4 +1,5 @@
 ﻿using Eco.Gameplay.Objects;
+using Eco.Mods.EcoConveyance.Components;
 using Eco.Mods.EcoConveyance.Objects;
 using Eco.Shared.Math;
 using Eco.Shared.Serialization;
@@ -27,6 +28,7 @@ namespace Eco.Mods.EcoConveyance
 			this._source = source;
 		}
 
+		public CrateData ChangeSource(BaseConveyorComponent source) => this.ChangeSource((BaseConveyorObject)source.Parent);
 		public CrateData ChangeSource(BaseConveyorObject source)
 		{
 			this._source = source;
