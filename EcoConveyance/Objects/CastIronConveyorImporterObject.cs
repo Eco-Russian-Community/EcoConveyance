@@ -40,6 +40,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 			this.GetComponent<LinkComponent>().Initialize(1);
 			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
 			this.GetComponent<PowerConsumptionComponent>().Initialize(10);
+			this.GetComponent<ConveyorImporterComponent>().Speed = 1f;
 		}
 	}
 }

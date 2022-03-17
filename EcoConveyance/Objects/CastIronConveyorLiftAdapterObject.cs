@@ -20,6 +20,8 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorVerticalEndComponent))]
+	[RequireComponent(typeof(PowerGridComponent))]
+	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class CastIronConveyorLiftAdapterObject : BaseConveyorObject, IRepresentsItem
 	{
 		public override LocString DisplayName => Localizer.DoStr("Cast Iron Conveyor Lift Adapter");
@@ -33,6 +35,14 @@ namespace Eco.Mods.EcoConveyance.Objects
 			ConveyorVerticalEndComponent conveyor = this.GetComponent<ConveyorVerticalEndComponent>();
 			conveyor.InputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
 			conveyor.OutputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
+		}
+
+		protected override void Initialize()
+		{
+			base.Initialize();
+			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
+			this.GetComponent<PowerConsumptionComponent>().Initialize(10);
+			this.GetComponent<ConveyorVerticalEndComponent>().Speed = 1f;
 		}
 	}
 }
