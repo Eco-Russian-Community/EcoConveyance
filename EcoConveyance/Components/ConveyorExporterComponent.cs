@@ -54,9 +54,10 @@ namespace Eco.Mods.EcoConveyance.Components
 			{
 				if (this.CrateData != null && this.CrateData.Crate.Storage != null)
 				{
+					this._op = true;
 					ConveyorCrateObject crate = this.CrateData.Crate;
 					Inventory crateInventory = crate.Storage.Inventory;
-					if (crateInventory.IsEmpty) { this.DestroyCrate(); return; } //Get empty crate, destroy it
+					if (crateInventory.IsEmpty) { this.DestroyCrate(); this._op = false; return; } //Get empty crate, destroy it
 
 					IEnumerable<StorageComponent> linkedStorages = this.link.GetEnabledLinkedComponents(this.Parent.Creator);
 					if (linkedStorages.Count() == 0) { this.CrateStuck.Invoke(); return; } //No storage linked, try again
@@ -72,6 +73,7 @@ namespace Eco.Mods.EcoConveyance.Components
 					}
 					//Destroy crate if it empty or try empty it again
 					if (crateInventory.IsEmpty) { this.DestroyCrate(); } else { this.CrateStuck.Invoke(); }
+					this._op = false;
 				}
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }

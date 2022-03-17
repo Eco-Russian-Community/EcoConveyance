@@ -79,6 +79,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			{
 				if (this.DestinationConveyor.TryGetValue(direction, out BaseConveyorObject conveyor))
 				{
+					this._op = true;
 					BaseConveyorComponent conveyorComponent = conveyor.GetComponent<BaseConveyorComponent>();
 					this.TryMoveOut(direction, conveyorComponent);
 				}
@@ -89,6 +90,12 @@ namespace Eco.Mods.EcoConveyance.Components
 				}
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		}
+
+		protected override void OnMovedOut(BaseConveyorComponent conveyor)
+		{
+			base.OnMovedOut(conveyor);
+			this._op = false;
 		}
 	}
 }

@@ -38,6 +38,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		private readonly Object _operationLock = new Object();
 		public readonly ThreadSafeAction CrateStuck = new ThreadSafeAction();
+		public readonly ThreadSafeAction<BaseConveyorComponent> MovedOut = new ThreadSafeAction<BaseConveyorComponent>();
 
 		protected abstract void CrateArrived();
 		protected abstract void TryMoveOut(Direction direction);
@@ -59,7 +60,6 @@ namespace Eco.Mods.EcoConveyance.Components
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: Initialize(\n\tdirection: {string.Join(',', this.OutputDirection)}\n\tdestination: {string.Join(',', this.DestinationConveyor)}\n\tconveyorCrate: {this.CrateData})");
-			this._op = true;
 		}
 
 		//public override void Tick()
@@ -125,10 +125,12 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				if (conveyor.CanReceive &&
-					conveyor.Parent.Enabled && conveyor.Parent.Operating &&
+					conveyor.Parent.Enabled && !conveyor.Parent.Operating &&
 					conveyor.CanReceiveFrom(this) &&
 					conveyor.ReceiveCrate(this.CrateData, this))
 				{
+					conveyor.MovedOut.Add(this.OnMovedOut);
+					this.Parent.TriggerAnimatedEvent($"MoveOut");
 					this.CrateData.Crate.SetAnimatedState("Speed", this.Speed);
 					this.CrateData.Crate.TriggerAnimatedEvent($"Move{direction}");
 					this.CrateData.Crate.OnDestroy.Remove(this.OnCrateDestroy);
@@ -154,6 +156,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				{
 					if (this.CrateData == null && !EcoConveyance.IsShutdown)
 					{
+						this.Parent.TriggerAnimatedEvent($"ReceiveCrate");
 						this.CrateData = crateData.ChangeSource(sourceConveyor);
 						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
 						this.CrateData.Crate.Position = this.Parent.Position;
@@ -174,9 +177,15 @@ namespace Eco.Mods.EcoConveyance.Components
 				Timer t = (Timer)timer;
 				t.Dispose();
 				//this.CrateData.Crate.Position = this.Parent.Position;
+				this.MovedOut.Invoke(this);
 				this.CrateArrived();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		}
+
+		protected virtual void OnMovedOut(BaseConveyorComponent conveyor)
+		{
+			conveyor.MovedOut.Remove(this.OnMovedOut);
 		}
 
 		public bool CanReceiveFrom(BaseConveyorComponent conveyor)
