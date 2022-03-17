@@ -33,7 +33,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 			base.OnCreate();
 			Direction facing = DirectionExtensions.FacingDir(this.Rotation.Forward);
 			ConveyorVerticalEndComponent conveyor = this.GetComponent<ConveyorVerticalEndComponent>();
-			conveyor.InputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
+			conveyor.InputDirection = new Direction[] { facing.Inverse(), Direction.Up, Direction.Down };
 			conveyor.OutputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
 		}
 
