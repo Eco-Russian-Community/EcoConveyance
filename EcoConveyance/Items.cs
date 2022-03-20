@@ -1,6 +1,7 @@
 ﻿using Eco.Core.Items;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
+using Eco.Gameplay.Players;
 using Eco.Mods.EcoConveyance.Objects;
 using Eco.Shared.Localization;
 using Eco.Shared.Serialization;
@@ -19,6 +20,12 @@ namespace Eco.Mods.EcoConveyance
 	{
 		public override LocString DisplayNamePlural => Localizer.DoStr("Conveyor Crate");
 		public override LocString DisplayDescription => Localizer.DoStr("Used to transport items over conveyors");
+
+		public override void OnSelected(Player player)
+		{
+			UserInventory inventory = player.User.Inventory;
+			inventory.RemoveItems(this.Type, inventory.Stacks.Sum(x => x.Item?.GetType() == this.Type ? x.Quantity : 0));
+		}
 	}
 
 	#region HewnConveyor

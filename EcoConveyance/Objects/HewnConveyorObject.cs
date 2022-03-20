@@ -1,4 +1,5 @@
 ﻿using Eco.Gameplay.Components;
+using Eco.Gameplay.Components.Auth;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Mods.EcoConveyance.Components;
@@ -13,6 +14,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 	[Serialized]
 	[RequireComponent(typeof(ConveyorComponent))]
 	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(PropertyAuthComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class HewnConveyorObject : BaseConveyorObject, IRepresentsItem

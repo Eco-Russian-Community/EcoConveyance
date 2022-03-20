@@ -1,4 +1,5 @@
 ﻿using Eco.Gameplay.Components;
+using Eco.Gameplay.Components.Auth;
 using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Mods.EcoConveyance.Components;
@@ -6,13 +7,13 @@ using Eco.Shared.Localization;
 using Eco.Shared.Math;
 using Eco.Shared.Serialization;
 using System;
-using System.Collections.Generic;
 
 namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorComponent))]
 	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(PropertyAuthComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class CastIronConveyorObject : BaseConveyorObject, IRepresentsItem

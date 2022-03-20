@@ -158,7 +158,7 @@ namespace Eco.Mods.EcoConveyance.Components
 					{
 						this.Parent.TriggerAnimatedEvent($"ReceiveCrate");
 						this.CrateData = crateData.ChangeSource(sourceConveyor);
-						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
+						this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy); //TODO: System.NullReferenceException: Object reference not set to an instance of an object.
 						this.CrateData.Crate.Position = this.Parent.Position;
 						Timer timer = new Timer(new TimerCallback(this.Moved));
 						return timer.Change(sourceConveyor.ConveyorSpeed, Timeout.Infinite);
