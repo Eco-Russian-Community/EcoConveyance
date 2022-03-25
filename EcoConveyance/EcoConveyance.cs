@@ -11,7 +11,7 @@ namespace Eco.Mods.EcoConveyance
 {
 	public class EcoConveyance : IModKitPlugin, IInitializablePlugin, IShutdownablePlugin
 	{
-		public const string Version = "1.1.1-alpha";
+		public const string Version = "1.1.2-alpha";
 		public static bool IsShutdown { get; private set; }
 
 		public Task ShutdownAsync()
