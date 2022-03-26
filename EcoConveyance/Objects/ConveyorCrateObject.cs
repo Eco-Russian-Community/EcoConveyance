@@ -8,6 +8,7 @@ using Eco.Gameplay.Items;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Players;
 using Eco.Gameplay.Wires;
+using Eco.Mods.EcoConveyance.Animation;
 using Eco.Mods.EcoConveyance.Components;
 using Eco.Mods.EcoConveyance.Utils;
 using Eco.Shared.Items;
@@ -34,7 +35,13 @@ namespace Eco.Mods.EcoConveyance.Objects
 		public virtual Type RepresentedItemType => typeof(ConveyorCrateItem);
 
 		public readonly ThreadSafeAction OnDestroy = new ThreadSafeAction();
+		public AnimationController AnimationController { get; private set; }
 		public PublicStorageComponent Storage { get; private set; }
+
+		static ConveyorCrateObject()
+		{
+			AddOccupancy<ConveyorCrateObject>(new List<BlockOccupancy>() { new BlockOccupancy(Vector3i.Zero, null) });
+		}
 
 		//protected override void OnCreate()
 		//{
@@ -48,10 +55,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 		//	}
 		//}
 
-		protected override void PostInitialize()
+		protected override void Initialize()
 		{
-			DebuggingUtils.LogInfoLine($"ConveyorCrateObject: PostInitialize({this})");
-			base.PostInitialize();
+			DebuggingUtils.LogInfoLine($"ConveyorCrateObject: Initialize({this})");
+			base.Initialize();
+			this.AnimationController = new AnimationController(this);
 			this.Storage = this.GetComponent<PublicStorageComponent>();
 			this.Storage.Initialize(1);
 			this.Storage.HiddenFromUI = true;
