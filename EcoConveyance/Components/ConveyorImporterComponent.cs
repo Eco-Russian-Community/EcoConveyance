@@ -31,13 +31,13 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		public override void Initialize()
 		{
-			base.Initialize();
 			try
 			{
 				this.link = this.Parent.GetComponent<LinkComponent>();
 				this.UpdateDestination();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+			base.Initialize();
 		}
 
 		public override void Tick()
@@ -46,7 +46,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
-				if(!this.Parent.Enabled) { return; }
+				if(!this.Parent.Enabled || IsShutdown) { return; }
 				if (this.CrateData != null) { this.TryMoveOut(); }
 				else if(this.workDelay.DoUpdate)
 				{

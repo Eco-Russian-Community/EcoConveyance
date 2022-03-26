@@ -28,12 +28,13 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		public override void Initialize()
 		{
-			base.Initialize();
 			try
 			{
 				this.UpdateDestination();
+				this.UpdateVisual();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+			base.Initialize();
 		}
 
 		public override void Tick()
@@ -41,7 +42,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			base.Tick();
 			try
 			{
-				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
+				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); this.UpdateVisual(); }
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
@@ -79,7 +80,6 @@ namespace Eco.Mods.EcoConveyance.Components
 			{
 				if (this.DestinationConveyor.TryGetValue(direction, out BaseConveyorObject conveyor))
 				{
-					this._op = true;
 					BaseConveyorComponent conveyorComponent = conveyor.GetComponent<BaseConveyorComponent>();
 					this.TryMoveOut(direction, conveyorComponent);
 				}
@@ -95,7 +95,6 @@ namespace Eco.Mods.EcoConveyance.Components
 		protected override void OnMovedOut(BaseConveyorComponent conveyor)
 		{
 			base.OnMovedOut(conveyor);
-			this._op = false;
 		}
 	}
 }

@@ -16,12 +16,12 @@ namespace Eco.Mods.EcoConveyance.Components
 	{
 		public override void Initialize()
 		{
-			base.Initialize();
 			try
 			{
 				this.UpdateDestination();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+			base.Initialize();
 		}
 
 		public override void Tick()

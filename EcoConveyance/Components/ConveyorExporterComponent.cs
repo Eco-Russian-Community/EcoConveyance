@@ -23,18 +23,20 @@ namespace Eco.Mods.EcoConveyance.Components
 	[RequireComponent(typeof(LinkComponent))]
 	[RequireComponent(typeof(PropertyAuthComponent))]
 	[RequireComponent(typeof(OnOffComponent))]
-	internal class ConveyorExporterComponent : BaseConveyorComponent
+	internal class ConveyorExporterComponent : BaseConveyorComponent, IOperatingWorldObjectComponent
 	{
+		public bool Operating => this._op;
+		protected bool _op = false;
 		private LinkComponent link;
 
 		public override void Initialize()
 		{
-			base.Initialize();
 			try
 			{
 				this.link = this.Parent.GetComponent<LinkComponent>();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+			base.Initialize();
 		}
 
 		protected override void CrateArrived()
