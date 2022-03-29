@@ -36,11 +36,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 
 		protected override void Initialize()
 		{
-			base.Initialize();
 			this.GetComponent<LinkComponent>().Initialize(1);
 			this.GetComponent<PowerGridComponent>().Initialize(10, default(MechanicalPower));
 			this.GetComponent<PowerConsumptionComponent>().Initialize(10);
 			this.GetComponent<ConveyorExporterComponent>().Speed = 0.5f;
+			base.Initialize();
 		}
 	}
 }

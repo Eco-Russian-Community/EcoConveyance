@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 
 namespace Eco.Mods.EcoConveyance.Components
 {
+	using World = Eco.World.World;
+
 	[Serialized]
 	[RequireComponent(typeof(LinkComponent))]
 	[RequireComponent(typeof(PropertyAuthComponent))]
@@ -34,9 +36,39 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				this.link = this.Parent.GetComponent<LinkComponent>();
+				this.link.OnLinked.Add(this.OnInventoryLinked);
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 			base.Initialize();
+		}
+
+		private void OnInventoryLinked(StorageComponent storage)
+		{
+			if (storage == null) { return; }
+			List<Vector3i> storagePlacement = Vector3iUtils.OccupancyWorldPosition(storage.Parent);
+			IEnumerable<Vector3i> ourPositions = Vector3iUtils.OccupancyWorldPosition(this.Parent);
+			float minDistance = float.MaxValue;
+			foreach(Vector3i pos in ourPositions)
+			{
+				foreach(Vector3i storagePos in storagePlacement)
+				{
+					float dst = World.WrappedDistance(pos, storagePos);
+					if(dst < minDistance) { minDistance = dst; }
+				}
+			}
+
+			if(minDistance > 1f)
+			{
+				IEnumerable<LinkComponent> links = this.link.GetAuthorizedLinkedObjects(this.Parent.Creator);
+				foreach (LinkComponent link in links)
+				{
+					if (storage.Parent.Equals(link.Parent))
+					{
+						DebuggingUtils.LogErrorLine($"ConveyorExporterComponent: OnInventoryLinked() {storage.Parent} with minDistance={minDistance}");
+						this.link.SetObjectEnabled(this.Parent.Creator, storage, false);
+					}
+				}
+			}
 		}
 
 		protected override void CrateArrived()
