@@ -28,12 +28,22 @@ namespace Eco.Mods.EcoConveyance.Objects
 		public override LocString DisplayDescription => Localizer.DoStr("Entry and exit point for lift conveyors, put it at the top and bottom of lift conveyors and connect conveyor at the side");
 		public virtual Type RepresentedItemType => typeof(CastIronConveyorLiftAdapterItem);
 
+		static CastIronConveyorLiftAdapterObject()
+		{
+			AddOccupancy<CastIronConveyorLiftAdapterObject>(new List<BlockOccupancy>(){
+				new BlockOccupancy(new Vector3i(0, 1, 0), typeof(WorldObjectBlock)),
+				new BlockOccupancy(new Vector3i(0, 1, 1), typeof(WorldObjectBlock)),
+				new BlockOccupancy(new Vector3i(0, 0, 0), typeof(WorldObjectBlock)),
+				new BlockOccupancy(new Vector3i(0, 0, 1), typeof(WorldObjectBlock)),
+			});
+		}
+
 		protected override void OnCreate()
 		{
 			base.OnCreate();
 			Direction facing = DirectionExtensions.FacingDir(this.Rotation.Forward);
 			ConveyorVerticalEndComponent conveyor = this.GetComponent<ConveyorVerticalEndComponent>();
-			conveyor.InputDirection = new Direction[] { facing.Inverse(), Direction.Up, Direction.Down };
+			conveyor.InputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
 			conveyor.OutputDirection = new Direction[] { facing, Direction.Up, Direction.Down };
 		}
 
