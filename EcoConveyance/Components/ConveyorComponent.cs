@@ -1,5 +1,6 @@
 ﻿using Eco.Core.Controller;
 using Eco.Core.Utils;
+using Eco.Gameplay.Components;
 using Eco.Gameplay.Interactions;
 using Eco.Gameplay.Objects;
 using Eco.Gameplay.Players;
@@ -24,8 +25,6 @@ namespace Eco.Mods.EcoConveyance.Components
 	[Serialized]
 	internal class ConveyorComponent : BaseConveyorComponent
 	{
-
-
 		public override void Initialize()
 		{
 			try
@@ -37,19 +36,20 @@ namespace Eco.Mods.EcoConveyance.Components
 			base.Initialize();
 		}
 
-		public override void Tick()
-		{
-			base.Tick();
-			try
-			{
-				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); this.UpdateVisual(); }
-			}
-			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
-		}
+		
+		//public override void Tick()
+		//{
+		//	base.Tick();
+		//	try
+		//	{
+		//		if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); this.UpdateVisual(); }
+		//	}
+		//	catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		//}
 
 		protected override void CrateArrived()
 		{
-			DebuggingUtils.LogInfoLine("ConveyorComponent: CrateArrived()");
+			//DebuggingUtils.LogInfoLine("ConveyorComponent: CrateArrived()");
 			try
 			{
 				this.TryMoveOut();

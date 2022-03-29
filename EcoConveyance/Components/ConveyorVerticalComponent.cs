@@ -14,25 +14,25 @@ namespace Eco.Mods.EcoConveyance.Components
 	[RequireComponent(typeof(PropertyAuthComponent))]
 	internal class ConveyorVerticalComponent : BaseConveyorComponent
 	{
-		public override void Initialize()
-		{
-			try
-			{
-				this.UpdateDestination();
-			}
-			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
-			base.Initialize();
-		}
+		//public override void Initialize()
+		//{
+		//	try
+		//	{
+		//		this.UpdateDestination();
+		//	}
+		//	catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		//	base.Initialize();
+		//}
 
-		public override void Tick()
-		{
-			base.Tick();
-			try
-			{
-				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
-			}
-			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
-		}
+		//public override void Tick()
+		//{
+		//	base.Tick();
+		//	try
+		//	{
+		//		if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
+		//	}
+		//	catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		//}
 
 		protected override void CrateArrived()
 		{

@@ -11,18 +11,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Eco.Gameplay.Components;
+using Eco.World.Blocks;
 
 namespace Eco.Mods.EcoConveyance.Components
 {
 	using World = Eco.World.World;
 
 	[Serialized]
-	internal abstract class BaseConveyorComponent : WorldObjectComponent, ITickOnDemand
+	[RequireComponent(typeof(ChunkSubscriberComponent))]
+	internal abstract class BaseConveyorComponent : WorldObjectComponent, ITickOnDemand, IChunkSubscriber
 	{
 		[Serialized] public Direction[] OutputDirection { get; set; }
 		[Serialized] public Direction[] InputDirection { get; set; }
-		public Dictionary<Direction, BaseConveyorObject> DestinationConveyor { get; } = new Dictionary<Direction, BaseConveyorObject>();
-		public virtual bool CanReceive { get; } = true;
+		public ThreadSafeDictionary<Direction, BaseConveyorObject> DestinationConveyor { get; } = new ThreadSafeDictionary<Direction, BaseConveyorObject>();
+
 		public float Speed
 		{
 			get { return 1000f / this.ConveyorSpeed; }
@@ -42,6 +45,36 @@ namespace Eco.Mods.EcoConveyance.Components
 		protected abstract void TryMoveOut(Direction direction);
 		protected abstract void TryMoveOut();
 
+		#region IChunkSubscriber
+		public float UpdateFrequencySec => 5f;
+		public float MaxQueuedChunkUpdateTime => 150f;
+		public double QueuedChunkUpdateTime { get; set; }
+		public double LastChunkUpdateTime { get; set; }
+
+		public void ChunksChanged()
+		{
+			try
+			{
+				this.UpdateDestination();
+			}
+			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
+		}
+
+		public IEnumerable<Vector3i> RelevantChunkPositions()
+		{
+			List<Vector3i> result = new List<Vector3i>();
+			if (this.OutputDirection != null)
+			{
+				foreach (Direction dir in this.OutputDirection)
+				{
+					if (Direction.Unknown.Equals(dir) || Direction.None.Equals(dir)) { continue; }
+					IEnumerable<Vector3i> positions = Vector3iUtils.OccupancyWorldPosition(this.Parent).Select(pos => World.GetWrappedWorldPosition(pos + dir.ToVec()));
+					result.AddRange(positions.Select(pos => World.ToChunkPosition(pos)));
+				}
+			}
+			return result.Distinct();
+		}
+		#endregion
 
 		public override void Initialize()
 		{
@@ -51,6 +84,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				if (this.OutputDirection == null) { this.OutputDirection = new Direction[] { Direction.Unknown }; }
 				if (this.InputDirection == null) { this.InputDirection = new Direction[] { Direction.Unknown }; }
 				this.CrateStuck.Add(this.OnCrateStuck);
+				this.UpdateDestination();
 				if (this.CheckCrateData())
 				{
 					this.CrateData.Crate.OnDestroy.Add(this.OnCrateDestroy);
@@ -58,7 +92,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				}
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
-			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: Initialize(\n\tdirection: {string.Join(',', this.OutputDirection)}\n\tdestination: {string.Join(',', this.DestinationConveyor)}\n\tconveyorCrate: {this.CrateData})");
+			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: [{this.Parent}] Initialize(\n\tInputDirection: {string.Join(',', this.InputDirection)}\n\tOutputDirection: {string.Join(',', this.OutputDirection)}\n\tDestinationConveyor: {string.Join(',', this.DestinationConveyor)}\n\tCrateData: {this.CrateData}\n)");
 		}
 
 		//public override void Tick()
@@ -82,32 +116,49 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		public void UpdateDestination()
 		{
+			DebuggingUtils.LogErrorLine($"BaseConveyorComponent: [{this.Parent}] UpdateDestination()");
 			try
 			{
-				this.DestinationConveyor.Clear(); //TODO: Do proper tracking, don't be lazy!
 				if (this.OutputDirection == null) { return; }
+
+				List<Vector3i> positions = Vector3iUtils.OccupancyWorldPosition(this.Parent);
 
 				foreach (Direction dir in this.OutputDirection)
 				{
 					if (Direction.Unknown.Equals(dir) || Direction.None.Equals(dir)) { continue; }
-					Vector3i neededPosition = World.GetWrappedWorldPosition(this.Parent.Position.Round + dir.ToVec());
-					foreach (WorldObject worldObject in ServiceHolder<IWorldObjectManager>.Obj.GetObjectsWithin(this.Parent.Position, 1f))
+					foreach (Vector3i position in positions)
 					{
-						if (worldObject.Equals(this.Parent)) { continue; }
-						if (!worldObject.Position3i.Equals(neededPosition)) { continue; }
-						if (worldObject is BaseConveyorObject conveyor)
+						Vector3i neededPosition = World.GetWrappedWorldPosition(position + dir.ToVec());
+						Block block = World.GetBlock(neededPosition);
+						if(block != null && block is WorldObjectBlock objectBlock)
 						{
-							this.DestinationConveyor.Add(dir, conveyor);
-							conveyor.OnDestroy.Add(this.OnDestinationDestroy);
-							//DebuggingUtils.LogInfoLine($"BaseConveyorComponent: UpdateDestination Add[{dir}={conveyor}]");
-							//IEnumerable<ConveyorComponent> components = obj.GetComponents<ConveyorComponent>();
-							//foreach (ConveyorComponent component in components)
-							//{
-
-							//}
+							WorldObject worldObject = objectBlock.WorldObjectHandle.Object;
+							if (worldObject is BaseConveyorObject conveyorObj)
+							{
+								if (this.Parent.Equals(conveyorObj)) { continue; }
+								if (!this.DestinationConveyor.ContainsKey(dir))
+								{ // Destination for direction not registered
+									this.DestinationConveyor.Add(dir, conveyorObj);
+									conveyorObj.OnDestroy.Add(this.OnDestinationDestroy);
+									DebuggingUtils.LogInfoLine($"BaseConveyorComponent: [{this.Parent}] UpdateDestination Add[{dir}={conveyorObj}]");
+								}
+								else
+								{ // Destination for direction is registered
+									bool result = this.DestinationConveyor.TryGetValue(dir, out BaseConveyorObject exDestinationObj);
+									if(!result || !conveyorObj.Equals(exDestinationObj))
+									{
+										this.DestinationConveyor.Remove(dir);
+										this.DestinationConveyor.Add(dir, conveyorObj);
+										conveyorObj.OnDestroy.Add(this.OnDestinationDestroy);
+										DebuggingUtils.LogInfoLine($"BaseConveyorComponent: [{this.Parent}] UpdateDestination Update[{dir}={conveyorObj}]");
+									}
+								}
+							}
 						}
 					}
 				}
+
+				this.UpdateVisual();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 		}
@@ -125,12 +176,11 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		protected void TryMoveOut(Direction direction, BaseConveyorComponent conveyor)
 		{
-			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: TryMoveOut({direction})");
+			//DebuggingUtils.LogInfoLine($"BaseConveyorComponent: TryMoveOut({direction})");
 			if (EcoConveyance.IsShutdown) { DebuggingUtils.LogWarningLine("BaseConveyorComponent: Prepare to shutdown, stop operating"); return; }
 			try
 			{
-				if (conveyor.CanReceive &&
-					conveyor.Parent.Enabled && //!conveyor.Parent.Operating &&
+				if (conveyor.Parent.Enabled && //!conveyor.Parent.Operating &&
 					conveyor.CanReceiveFrom(this))
 				{
 					if(conveyor.ReceiveCrate(this.CrateData, this))
@@ -152,7 +202,7 @@ namespace Eco.Mods.EcoConveyance.Components
 				}
 				else
 				{
-					DebuggingUtils.LogWarningLine($"BaseConveyorComponent: TryMoveOut({direction}) but DestinationConveyor({conveyor}) is not operating!");
+					DebuggingUtils.LogWarningLine($"BaseConveyorComponent: TryMoveOut({direction}) but DestinationConveyor({conveyor}) is not operating! [{conveyor.Parent.Enabled}][{conveyor.CanReceiveFrom(this)}]");
 					this.CrateStuck.Invoke();
 				}
 			}
@@ -188,7 +238,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		private void Moved()
 		{
-			DebuggingUtils.LogInfoLine("ConveyorComponent: Moved()");
+			//DebuggingUtils.LogInfoLine("ConveyorComponent: Moved()");
 			try
 			{
 				if (this.CheckCrateData())
@@ -210,7 +260,7 @@ namespace Eco.Mods.EcoConveyance.Components
 		{
 			if (this.InputDirection.Contains(Direction.None)) { return false; }
 			if (this.InputDirection.Contains(Direction.Unknown)) { return true; }
-			Direction sourceDir = WorldPosition3i.GetDelta(this.Parent.Position3i, conveyor.Parent.Position3i).ToDir();
+			Direction sourceDir = DirectionUtils.GetDeltaDirection(conveyor.Parent.Position3i, this.Parent.Position3i);
 			return this.InputDirection.Contains(sourceDir);
 		}
 
@@ -244,7 +294,7 @@ namespace Eco.Mods.EcoConveyance.Components
 
 		private void OnCrateStuck()
 		{
-			DebuggingUtils.LogInfoLine($"BaseConveyorComponent: OnCrateStuck()");
+			//DebuggingUtils.LogInfoLine($"BaseConveyorComponent: OnCrateStuck()");
 			if (this.CheckCrateData())
 			{
 				ServiceHolder<IWorldObjectManager>.Obj.AddToTick(this);

@@ -25,8 +25,8 @@ namespace Eco.Mods.EcoConveyance.Components
 	[RequireComponent(typeof(OnOffComponent))]
 	internal class ConveyorImporterComponent : BaseConveyorComponent
 	{
-		public override bool CanReceive => false;
 		private readonly PeriodicUpdate workDelay = new PeriodicUpdate(5);
+
 		private LinkComponent link;
 
 		public override void Initialize()
@@ -34,7 +34,6 @@ namespace Eco.Mods.EcoConveyance.Components
 			try
 			{
 				this.link = this.Parent.GetComponent<LinkComponent>();
-				this.UpdateDestination();
 			}
 			catch (Exception ex) { Log.WriteErrorLineLocStr(ex.ToString()); }
 			base.Initialize();
@@ -45,7 +44,7 @@ namespace Eco.Mods.EcoConveyance.Components
 			base.Tick();
 			try
 			{
-				if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
+				//if (this.DestinationConveyor.Count() < this.OutputDirection.Length) { this.UpdateDestination(); }
 				if(!this.Parent.Enabled || IsShutdown) { return; }
 				if (this.CrateData != null) { this.TryMoveOut(); }
 				else if(this.workDelay.DoUpdate)
