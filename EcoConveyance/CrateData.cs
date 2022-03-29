@@ -1,6 +1,7 @@
 ﻿using Eco.Gameplay.Objects;
 using Eco.Mods.EcoConveyance.Components;
 using Eco.Mods.EcoConveyance.Objects;
+using Eco.Mods.EcoConveyance.Utils;
 using Eco.Shared.Math;
 using Eco.Shared.Serialization;
 using System;
@@ -35,7 +36,11 @@ namespace Eco.Mods.EcoConveyance
 			return this;
 		}
 
-		public Direction GetSourceDirection(Vector3i thisPosition) => WorldPosition3i.GetDelta(this.Source.Position3i, thisPosition).ToDir();
+		public Direction GetSourceDirection(Vector3i thisPosition)
+		{
+			if(this.Source == null) { return Direction.Unknown; }
+			return DirectionUtils.GetDeltaDirection(this.Source.Position3i, thisPosition);
+		}
 
 		public override string ToString()
 		{
