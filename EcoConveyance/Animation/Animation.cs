@@ -50,6 +50,7 @@ namespace Eco.Mods.EcoConveyance.Animation
 
 		public bool Play(WorldObject worldObject)
 		{
+			if (this._disposed) { throw new AccessViolationException("Trying to play disposed animation"); }
 			if (this.Duration == 0) { throw new ArgumentNullException(nameof(this.Duration)); }
 			worldObject.TriggerAnimatedEvent(this.Name);
 			return this._timer.Change(this.Duration + delay, Timeout.Infinite);
