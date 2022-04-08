@@ -7,7 +7,7 @@ namespace Eco.Mods.EcoConveyance.Animation
 {
 	public class Animation : IDisposable
 	{
-		private static readonly int delay = 15;
+		private static readonly int delay = 20;
 
 		public string Name { get; private set; }
 		public int Duration { get; private set; } = 0;
