@@ -1031,7 +1031,7 @@
         <member name="T:Eco.Shared.Networking.ForceScanSubPropAttribute">
             <summary> Mark a property as to traverse its sub properties, even if it wouldn't usually otherwise (ie, references dont usually 'scan into') </summary>
         </member>
-        <member name="T:Eco.Shared.Networking.IgnoreValidityAttribute">
+        <member name="T:Eco.Shared.Networking.OnlyReferenceScanAttribute">
             <summary> When this is encountered, the Property Scanner will continue scanning that property and any children properties, but will no longer check validity. This is useful when you have a property with members who's validity shouldnt affect our own (like actions that an election references), but you still want to perform the other features PropertyManager provides (like setting up references). </summary>
         </member>
         <member name="T:Eco.Shared.Networking.AnyStateAllowedAttribute">
@@ -1758,7 +1758,7 @@
         <member name="T:Eco.Shared.Serialization.SerializedAttribute">
             <summary> This symbol will be serialized to BSON for storage in the world file. </summary>
         </member>
-        <member name="T:Eco.Shared.Serialization.NoReferenceAttribute">
+        <member name="T:Eco.Shared.Serialization.ForceSerializeFullObjectAttribute">
             <summary> Used in conjunction with SerializedAttribute to designate that a member needs to be fully saved, not using references. </summary>
         </member>
         <member name="T:Eco.Shared.Serialization.UsesReferenceInHashCode">
@@ -2016,6 +2016,9 @@
         </member>
         <member name="T:Eco.Shared.Tools.PerformanceReportFormat">
             <summary>Enum of performance report formats.</summary>
+        </member>
+        <member name="T:Eco.Shared.UI.MultiSelectorPopUpFlags">
+            <summary> Flags for customizing The MultiSelector Pop up behavior. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.Array2D`1.ReadFromStream(System.IO.MemoryStream)">
             <summary>Creates <see cref="T:Eco.Shared.Utils.Array2D`1"/> from <paramref name="stream"/>.</summary>
@@ -3214,6 +3217,9 @@
         <member name="M:Eco.Shared.Utils.StringExtensions.JoinSafe(Eco.Shared.Localization.LocString,Eco.Shared.Localization.LocString,System.String,System.String)">
             <summary>Join a string to another with a separator, if both are set.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.StartWithWords(System.String,System.String)">
+            <summary>Check if a string is in the beginning of this string, whole words included. Partial overlap will return false. </summary>
+        </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.StripTagsNoParse(System.String)">
             <summary>Same as <see cref="M:Eco.Shared.Utils.StringExtensions.StripTags(System.String)"/>, but does not strip tags that are inside 'noparse' tag.</summary>
         </member>
@@ -3615,6 +3621,12 @@
              Note: In order to get chunk level locking, rather than lock the whole container during each update, the Count may not always be correct and should only be treaded as a guide.
              e.g. Don't use Count to create a new array, create a List instead, that way if count is wrong it wont matter as the list will auto expand itself.
              </summary>
+        </member>
+        <member name="M:Eco.Shared.Voxel.HashChunkContainer`1.CollectRange(Eco.Shared.Math.WorldRange,System.Collections.Generic.Queue{`0})">
+            <summary> Gets chunks at given range to the buffer, this excludes chunks at <see cref="F:Eco.Shared.Math.WorldRange.max"/>. </summary>
+            <param name="worldRange">The range to get the chunks from.</param>
+            <param name="buffer">The buffer to load the resulting chunks collection to.</param>
+            <returns>The count of added chunks.</returns>
         </member>
         <member name="T:Eco.Shared.Voxel.IChunkGrid">
             <summary>Interface for all Chunk Grid implementations (both on server side and client-side). Chunk Grid is 3D grid of <see cref="T:Eco.Shared.Voxel.IChunk"/> objects.</summary>

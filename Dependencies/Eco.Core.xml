@@ -2245,7 +2245,7 @@
             </summary>
         </member>
         <member name="T:Eco.Core.Systems.IHasReferenceableSerializableID">
-            <summary>Marker interface for objects with serializable universal ID which may be serialized by reference (like <see cref="T:Eco.Core.Systems.IHasID"/>). These objects by default serialized by reference and need to use <see cref="T:Eco.Shared.Serialization.NoReferenceAttribute"/> for full object serialization.</summary>
+            <summary>Marker interface for objects with serializable universal ID which may be serialized by reference (like <see cref="T:Eco.Core.Systems.IHasID"/>). These objects by default serialized by reference and need to use <see cref="T:Eco.Shared.Serialization.ForceSerializeFullObjectAttribute"/> for full object serialization.</summary>
         </member>
         <member name="T:Eco.Core.Systems.IHasUniversalID">
             <summary>For any object that needs to be referenced by the client and/or server.</summary>

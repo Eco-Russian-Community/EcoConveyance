@@ -153,6 +153,44 @@
         <member name="M:Eco.Gameplay.Civics.ConstitutionManager.SetConstitution(Eco.Gameplay.Civics.Constitution,Eco.Gameplay.Settlements.Settlement)">
             <summary>Set the constitution for a given settlement</summary>
         </member>
+        <member name="T:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager">
+            <summary> Aggregates given amounts and gets ticked using <see cref="T:Eco.Gameplay.Civics.CivicsPlugin" /> through <see cref="M:Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount.OnUserAggregateAmountDue(Eco.Gameplay.Players.User,System.Single)" /> </summary>
+            <inheritdoc cref="T:Eco.Shared.Utils.Singleton`1" />
+            <example> Used for <see cref="T:Eco.Gameplay.Economy.WorkParties.WorkParty" /> Pay as you go feature where fraction payments that can get aggregated over <see cref="F:Eco.Gameplay.Civics.Economy.AggregatedAmount.Delay" /> time. </example>
+            <remarks> This is meant to process transfers in bulk instead of using <see cref="T:Eco.Gameplay.Systems.Messaging.Notifications.AggregatedNotifications" /> to avoid extra processing that isn't meant to be done for notifications.</remarks>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.AddOrUpdateAggregatedAmount(Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount,Eco.Gameplay.Players.User,System.Single)">
+            <summary>
+            Adds a delayed amount by <see cref="F:Eco.Gameplay.Civics.Economy.AggregatedAmount.Delay" /> that should aggregate if there is a value with the same handles already delayed.
+            </summary>
+            <param name="aggregatedAmountHandler"> The aggregated amount Handler that should be resposible for handling the aggregated value. </param>
+            <param name="user"> The target user that the amount should go to. </param>
+            <param name="amountDelta"> The difference in aggregated amount that should applied for the given user, for example in WorkParites the payment is calculated with <see cref="T:Eco.Gameplay.Economy.WorkParties.Payment" />, in which the weight change (aggregated amount) is given and then payment is calculated and paid.</param>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.ForceAggregatingAmountsForHandler(Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount)">
+            <summary> Forces the remaining aggregate amounts for the given amount handler. </summary>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.Tick">
+            <summary> When ticked checks if there are aggregate amounts due and pays it. </summary>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.ApplyAggregatedAmountsGroupAndRemove(System.Collections.Generic.IEnumerable{Eco.Gameplay.Civics.Economy.AggregatedAmount})">
+            <summary> Processes out the given group of aggregate amounts and removes it from <see cref="F:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.aggregatedAmounts" /> </summary>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.ProcessAggregatedAmountAndRemove(Eco.Gameplay.Civics.Economy.AggregatedAmount)">
+            <summary> Applies handling for the given aggregated amount and removes it from <see cref="F:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager.aggregatedAmounts" /></summary>
+        </member>
+        <member name="T:Eco.Gameplay.Civics.Economy.AggregatedAmount">
+            <summary> Holds data for aggregated amount, this is ticked by <see cref="T:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager" /> through <see cref="T:Eco.Gameplay.Civics.CivicsPlugin" />, delay is calculated internally using <see cref="F:Eco.Gameplay.Civics.Economy.AggregatedAmount.Delay" /> </summary>
+        </member>
+        <member name="T:Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount">
+            <summary> Interface meant for handling aggregated amounts using <see cref="T:Eco.Gameplay.Civics.Economy.AggregateUserAmountManager" /> </summary>
+            <example> Check <see cref="T:Eco.Gameplay.Economy.WorkParties.WorkParty" /> for an example implementation. </example>
+        </member>
+        <member name="M:Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount.OnUserAggregateAmountDue(Eco.Gameplay.Players.User,System.Single)">
+            <summary> Process the final aggregated amount for the given user. </summary>
+            <param name="user">The targeted user reference.</param>
+            <param name="amount">The final amount to be applied after aggregating for <see cref="F:Eco.Gameplay.Civics.Economy.AggregatedAmount.Delay" /> seconds</param>
+        </member>
         <member name="M:Eco.Gameplay.Civics.Elections.Election.CanVote(Eco.Gameplay.Players.User,Eco.Shared.Localization.LocStringBuilder)">
             <summary>Check the various things that determine if a user can vote or not. Optionally explain why in a passed string builder.</summary>
         </member>
@@ -347,6 +385,13 @@
         <member name="T:Eco.Gameplay.Components.LinkComponent">
             <summary> This component manages connections to other world objects within a given radius </summary>
             <remarks> This assumes the world object is stationary </remarks> 
+            <inheritdoc />
+        </member>
+        <member name="P:Eco.Gameplay.Components.LinkComponent.BaseConnectionRadius">
+            <summary>Radius measurement used to connect to other objects as defined in the object's definition.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Components.LinkComponent.ObjectConnectionRadius">
+            <summary>Radius measurement used to connect to other objects with applied modifiers. Based on the <see cref="P:Eco.Gameplay.Components.LinkComponent.BaseConnectionRadius" />.</summary>
         </member>
         <member name="M:Eco.Gameplay.Components.LinkComponent.LinkSettingsAlias(Eco.Gameplay.Aliases.IAlias)">
             <summary> This alias will be used to get settings instead of provided one.
@@ -793,8 +838,9 @@
         <member name="M:Eco.Gameplay.Economy.WorkParties.WorkParty.MakeAddItemsNotification(Eco.Gameplay.Players.User,System.Collections.Generic.IEnumerable{System.Object})">
             <summary>Builds final notification with counting all items added while timer is working. By each user.</summary>
         </member>
-        <member name="M:Eco.Gameplay.Economy.WorkParties.WorkParty.MakePaymentNotification(Eco.Gameplay.Players.User,System.Collections.Generic.IEnumerable{System.Object})">
-            <summary>Builds final payment notification. Collect information about payment with every labor action while timer is on. </summary>
+        <member name="M:Eco.Gameplay.Economy.WorkParties.WorkParty.OnUserAggregateAmountDue(Eco.Gameplay.Players.User,System.Single)">
+            <summary> Handles aggregate payments for PayAsYouGo feature, User is the laborer reference and weighted percent delta is the change in his contribution to the work party. </summary>
+            <inheritdoc cref="M:Eco.Gameplay.Civics.Economy.IHasUserAggregatedAmount.OnUserAggregateAmountDue(Eco.Gameplay.Players.User,System.Single)" />
         </member>
         <member name="T:Eco.Gameplay.GameActions.ActionUtil">
             <summary>
@@ -1176,6 +1222,21 @@
         <member name="P:Eco.Gameplay.Items.IInventoryContext.BuilderInventoryContext">
             <summary>The builders inventory context. Handles items that need to be picked up.</summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.InventoryComponent">
+            <summary>
+            Inventory components track an attribute of an inventory, such as weight
+            restrictions may use components to handle valid item destinations
+            </summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.WeightComponent">
+            <summary>Used to track the total weight of an inventory.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.WeightComponent.MaxWeight">
+            <summary>Represents the max weight this inventory can support.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.WeightComponent.Weight">
+            <summary>Represents the true modified weight of this inventory.</summary>
+        </member>
         <member name="M:Eco.Gameplay.Items.Inventory.TryRemoveItemsAsManyAsPossible(System.Type,System.Int32,Eco.Gameplay.Players.User)">
             <summary>Remove as much as we can, up to desired quantity, and return results.</summary>
         </member>
@@ -1234,6 +1295,9 @@
         <member name="T:Eco.Gameplay.Items.InventoryRelated.InventoryManager">
             <summary>Tracks all inventories so that they can be scanned for items.</summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.InventoryAccessType">
+            <summary>Used to describe the access type of inventory (are we using in with player hands or from vehicle tool, etc)</summary>
+        </member>
         <member name="T:Eco.Gameplay.Items.RestrictionType">
             <summary>This helps in preparing a simple contextual error message for invalid inventory move (when all stacks produced a restriction).
             See <see cref="M:Eco.Gameplay.Items.Inventory.TryGetBestRestrictionMessage(System.Collections.Generic.IEnumerable{Eco.Gameplay.Items.InventoryRestriction},Eco.Shared.Localization.LocString@)" />.</summary>
@@ -1244,6 +1308,23 @@
         <member name="F:Eco.Gameplay.Items.RestrictionType.Specialized">
             <summary>When only a specilized set of items can be added to the inventory (Fuel/Silo etc.).</summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.InventoryRestriction">
+            <summary>Restricts an inventory from accepting or applying an operation</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.InventoryRestriction.Message">
+            <summary>Localized message shown to the user when the restriction checks do not pass.</summary>
+        </member>
+        <member name="M:Eco.Gameplay.Items.InventoryRestriction.MaxAccepted(Eco.Gameplay.Items.Item,System.Int32)">
+            <summary>Custom handler for defining restriction max accepted rules.</summary>
+            <returns>The max amount of of items that can be accepted. Otherwise -1 for default behaviour.</returns>
+        </member>
+        <member name="M:Eco.Gameplay.Items.InventoryRestriction.MaxPickup(Eco.Gameplay.Items.RestrictionCheckData,Eco.Gameplay.Items.Item,System.Int32)">
+            <summary>Custom handler for defining restriction pickup rules.</summary>
+            <returns>The max amount that can be picked up. Otherwise -1 for default behaviour.</returns>
+        </member>
+        <member name="M:Eco.Gameplay.Items.InventoryRestriction.MaxAccepted(Eco.Gameplay.Items.RestrictionCheckData,Eco.Gameplay.Items.Item,System.Int32)">
+            <inheritdoc cref="M:Eco.Gameplay.Items.InventoryRestriction.MaxAccepted(Eco.Gameplay.Items.Item,System.Int32)" />
+        </member>
         <member name="P:Eco.Gameplay.Items.InventoryRestriction.Priority">
             <summary>The priority of the restriction. Used to find the most important restriction (<see cref="M:Eco.Gameplay.Items.Inventory.CheckRestrictions(Eco.Gameplay.Items.Inventory.RestrictionCheckType,Eco.Gameplay.Items.Item,System.Int32,System.Func{Eco.Gameplay.Items.InventoryRestriction,System.Int32},Eco.Gameplay.Items.InventoryRestriction@)" />)
             from all of the applied restrictions for a given inventory stack.</summary>
@@ -1251,8 +1332,68 @@
         <member name="P:Eco.Gameplay.Items.InventoryRestriction.Type">
             <summary>See <see cref="T:Eco.Gameplay.Items.RestrictionType" /></summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.PutOnlyRestriction">
+            <summary>Prevents a user from picking up items from an inventory.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.ItemTypeLimiterRestriction">
+            <summary>Restricts an inventory instnace to only accept items matching the given types. </summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.NoAddRestictions">
+            <summary>Prevents the inventory from accepting anything.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.CarriedRestriction">
+            <summary>Restricts an inventory instance to only accept items carried.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.NoBuildingRestriction">
+            <summary>Restricts the inventory from accepting building materials.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.DurabilityRestriction">
+            <summary>Restricts the inventory to only accept items that need to be repaired</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.NotCarriedRestriction">
+            <summary>Restricts the inventory to only accept items that are not carried.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.WeightRestriction">
+            <summary>Prohibts the inventory Prohibits from accepting items beyond the weight limit</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.FuelRestriction">
+            <summary>Restricts the inventory to only accept fuel items.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.SeedRestriction">
+            <summary>Restricts the inventory to only accept items that are seeds</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.SpecificItemTypesRestriction">
+            <summary>Restricts the inventory to only accept specific items</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.TagRestriction">
+            <summary>Restricts the inventory to only accept items that match the given tags.</summary>
+        </member>
         <member name="T:Eco.Gameplay.Items.StackableRestriction">
-            Only accepts specific stackable items.
+            <summary>Restricts an inventory so it can only accept specific stackable items.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.ClothingRestriction">
+            <summary>Restricts an inventory to only accept fitting a specific slot</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.StackLimitRestriction">
+            <summary>Limits the inventory stack sizes to a different quantity than <see cref="P:Eco.Gameplay.Items.Item.MaxStackSize" /></summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.StackLimitRestriction.MaxItems">
+            <summary>The maximum stack size allowed by the restriction.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.StackLimitRestriction.StaticLimit">
+            <summary>If true this inventory restriction will not apply external modifiers to its settings.</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.StackLimitTypeRestriction">
+            <summary>Limit the inventory stack sizes to a different quantity than <see cref="P:Eco.Gameplay.Items.Item.MaxStackSize" /> depending on item type table</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.SiloRestriction">
+            <summary>Sets an inventory to only accept items with tag seeds, crops, or fertilizer</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.FoodStorageRestriction">
+            <summary>Sets an Inventory to only accept food tag items</summary>
+        </member>
+        <member name="T:Eco.Gameplay.Items.SettlementRestriction">
+            <summary>Sets an inventory to only accept items matching a specific settlement, for items associated with settlements</summary>
         </member>
         <member name="M:Eco.Gameplay.Items.InventoryUtils.CanMoveItems(Eco.Gameplay.Items.Inventory,System.Type,System.Int32,Eco.Gameplay.Players.User,System.Int32@)">
             <summary> Checks whether it's possible for the <paramref name="user" /> to perform changes in this inventory. </summary>
@@ -1278,14 +1419,29 @@
         <member name="M:Eco.Gameplay.Items.ItemStackExtensions.TryRemove(Eco.Gameplay.Items.ItemStack,System.Int32)">
             <summary>Subtract what we can and return the number removed.</summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.ToolbarBackpackInventory">
+            <summary>Represents the player's combined toolbar and backpack inventories.</summary>
+        </member>
         <member name="M:Eco.Gameplay.Items.UserInventory.SendInventoryNotification(Eco.Gameplay.Players.User,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.Type,System.Int32}},System.Collections.Generic.List{Eco.Gameplay.Items.ItemStack})">
             <summary>Send notifications for items added in inventory</summary>
         </member>
         <member name="M:Eco.Gameplay.Items.UserInventory.GetNotificationPosition(Eco.Gameplay.Items.Inventory)">
             <summary>Returns Instant Notification position depending on Inventory type</summary>
         </member>
+        <member name="T:Eco.Gameplay.Items.Item">
+            <summary>Base class for all inventory friendly items inside Eco.</summary>
+        </member>
         <member name="P:Eco.Gameplay.Items.Item.DisplayName">
             <summary> Returns display name for given item. This name same as class Display Name and should be specified as [LocDisplayName] attribute. </summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.Item.WeightWithoutModifiers">
+            <summary>Represents the true weight of this item as intended by the item's designers.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.Item.Weight">
+            <summary>Represents the <see cref="P:Eco.Gameplay.Items.Item.WeightWithoutModifiers" /> if this item with player defined modifiers attached.</summary>
+        </member>
+        <member name="P:Eco.Gameplay.Items.Item.HasWeight">
+            <summary>Flag determining if this item instance has associated weight.</summary>
         </member>
         <member name="M:Eco.Gameplay.Items.ItemAttribute.TryGet``1(System.Type,``0@)">
             <summary> Tries to get item attribute of requested type. </summary>
@@ -1854,6 +2010,9 @@
         <member name="M:Eco.Gameplay.Players.BaseUserIDList`1.FindAndAddOrRemoveToList(Eco.Gameplay.Players.User,System.String,System.String,System.Boolean,System.Nullable{Eco.Shared.Localization.LocString},System.String)">
             <summary> Helper that shows elements of the collection or tries to add or remove provided string element (updates config if something was changed). </summary>
         </member>
+        <member name="T:Eco.Gameplay.Players.DefaultUserMarkUpService">
+            <summary>Default implementation of <see cref="T:Eco.Gameplay.Players.IUserMarkUpService" /> with user name marked up just as UI link.</summary>
+        </member>
         <member name="M:Eco.Gameplay.Players.ExhaustionMonitor.Energize(System.Single)">
             <summary>Give this user an extra number of hours of energy.  This rolls over.</summary>
         </member>
@@ -1876,6 +2035,21 @@
             <summary>Checks if the <seealso cref="T:Eco.Shared.Authentication.LoginSession" /> instance is authorized to connect to this server.</summary>
             <param name="session"><seealso cref="T:Eco.Shared.Authentication.LoginSession" /> instance to authorize</param>
             <returns><c>true</c> if the session is authorized. Otherwise <c>false</c> to continue processing.</returns>
+        </member>
+        <member name="T:Eco.Gameplay.Players.IUserMarkUpService">
+            <summary>
+            <see cref="T:Eco.Gameplay.Players.IUserMarkUpService" /> is an interface exposed as <c>ServiceHolder{IUserMarkUpService}.Obj</c> for <see cref="T:Eco.Gameplay.Players.User" /> for marking up name, chat tag and name with reputation.
+            It exposed to service to make it extendable by Mods (i.e. for custom titles, prefixes etc).
+            </summary>
+        </member>
+        <member name="M:Eco.Gameplay.Players.IUserMarkUpService.MarkUpName(Eco.Gameplay.Players.User)">
+            <summary>Marks up <paramref name="user" /> name.</summary>
+        </member>
+        <member name="M:Eco.Gameplay.Players.IUserMarkUpService.MarkUpChatTag(Eco.Gameplay.Players.User)">
+            <summary>Marks up chat tag for <paramref name="user" />. This marked up text used in chat for displaying message sender/recipient</summary>
+        </member>
+        <member name="M:Eco.Gameplay.Players.IUserMarkUpService.MarkUpReputationAndName(Eco.Gameplay.Players.User)">
+            <summary>Marked up name combined with marked up reputation.</summary>
         </member>
         <member name="T:Eco.Gameplay.Players.MountManager">
              <summary>
@@ -2581,8 +2755,8 @@
             <remarks>Used exclusively by <see cref="M:Eco.Gameplay.Systems.Messaging.Chat.ChatParsingUtils.ResolveReceiver(System.String,System.String@)" />.</remarks>
         </member>
         <member name="M:Eco.Gameplay.Systems.Messaging.Chat.ChatParsingUtils.FindUserInChatMessage(System.String)">
-            <summary>Given a raw chat message, looks up the first part before space to attempt to resolve a <see cref="T:Eco.Gameplay.Players.User" />.</summary>
-            <remarks>Strives to return the first matching name. Will keep adding spaced parts together until either finds one, or doesn't. Used exclusively by <see cref="M:Eco.Gameplay.Systems.Messaging.Chat.ChatParsingUtils.ResolveReceiver(System.String,System.String@)" />.</remarks>
+            <summary>Will take the longest name that can be found at the beginning of a text line.
+            E.g. Text: @test client 1 [some more text] we will take @test client 1 as a user chat tag, and @test will be skipped.</summary>
         </member>
         <member name="T:Eco.Gameplay.Systems.Messaging.Chat.ChatSettings">
             <summary>
