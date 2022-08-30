@@ -17,7 +17,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorExporterComponent))]
-	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(SolidAttachedSurfaceRequirementComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
 	internal class HewnConveyorExporterObject : BaseConveyorObject, IRepresentsItem
@@ -26,11 +26,11 @@ namespace Eco.Mods.EcoConveyance.Objects
 		public override LocString DisplayDescription => Localizer.DoStr("Unpack items from arrived crates and put them into connected storage");
 		public virtual Type RepresentedItemType => typeof(HewnConveyorExporterItem);
 
-		protected override void OnCreate()
+		protected override void OnCreatePreInitialize()
 		{
-			base.OnCreate();
+			base.OnCreatePreInitialize();
 			ConveyorExporterComponent conveyor = this.GetComponent<ConveyorExporterComponent>();
-			conveyor.InputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3.Back)) };
+			conveyor.InputDirection = new Direction[] { DirectionExtensions.FacingDir(this.Rotation.RotateVector(Vector3i.Back)) };
 			conveyor.OutputDirection = new Direction[] { Direction.None };
 		}
 

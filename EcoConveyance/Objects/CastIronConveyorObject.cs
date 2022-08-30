@@ -12,7 +12,7 @@ namespace Eco.Mods.EcoConveyance.Objects
 {
 	[Serialized]
 	[RequireComponent(typeof(ConveyorComponent))]
-	[RequireComponent(typeof(SolidGroundComponent))]
+	[RequireComponent(typeof(SolidAttachedSurfaceRequirementComponent))]
 	[RequireComponent(typeof(PropertyAuthComponent))]
 	[RequireComponent(typeof(PowerGridComponent))]
 	[RequireComponent(typeof(PowerConsumptionComponent))]
@@ -22,9 +22,9 @@ namespace Eco.Mods.EcoConveyance.Objects
 		public override LocString DisplayDescription => Localizer.DoStr("Transporting crates in one direction");
 		public virtual Type RepresentedItemType => typeof(CastIronConveyorItem);
 
-		protected override void OnCreate()
+		protected override void OnCreatePreInitialize()
 		{
-			base.OnCreate();
+			base.OnCreatePreInitialize();
 			ConveyorComponent conveyor = this.GetComponent<ConveyorComponent>();
 			conveyor.InputDirection = new Direction[] {
 				Direction.Left,

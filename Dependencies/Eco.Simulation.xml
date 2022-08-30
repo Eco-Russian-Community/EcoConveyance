@@ -4,14 +4,23 @@
         <name>Eco.Simulation</name>
     </assembly>
     <members>
-        <member name="M:Eco.Simulation.Agents.AI.AIUtil.FindTargetSwimPositions(Eco.Shared.Math.Vector3,System.Single,System.Single,Eco.Shared.Math.Vector2,System.Single,System.Single,System.Int32,System.Boolean)">
+        <member name="M:Eco.Simulation.Agents.AI.AIUtil.FindTargetSwimPositions(System.Numerics.Vector3,System.Single,System.Single,Eco.Shared.Math.Vector2,System.Single,System.Single,System.Int32,System.Boolean)">
             <summary>Finds potential target swim positions. Makes up to <paramref name="tryCount"/> tries.</summary>
         </member>
         <member name="T:Eco.Simulation.Agents.AI.BehaviorComplex`1">
             <summary>This is how to implement behaviors that have a real 'Running' status through enumerators.</summary>
         </member>
-        <member name="M:Eco.Simulation.Agents.AI.BehaviorDebug.SimulationTickDone">
-            <summary>Should be executed when Simulation completes tick. Animal debug data may be updated from external sources, so <see cref="M:Eco.Simulation.Agents.AI.BehaviorDebug.TickDone(Eco.Simulation.Agents.AI.Behavior{Eco.Simulation.Agents.Animal},Eco.Simulation.Agents.Animal)"/> isn't enough.</summary>
+        <member name="M:Eco.Simulation.Agents.AI.BehaviorDebug.BehaviorRPC(Eco.Simulation.Agents.AI.Behavior{Eco.Simulation.Agents.Animal},Eco.Simulation.Agents.Animal)">
+            <summary>Animal Behavior is updatedd every animmal Tick, no need to update this with every Sim Tick (Sending this every 0.1 seconds is very performance heave on server)</summary>
+        </member>
+        <member name="M:Eco.Simulation.Agents.AI.BehaviorDebug.PositionRPC(Eco.Simulation.Agents.Animal)">
+            <summary>Should be executed when Simulation completes tick. Animal position is updated continuously so we need to send an RPC message every 0.1 seconds</summary>
+        </member>
+        <member name="M:Eco.Simulation.Agents.AI.BehaviorDebug.ComposePositionResult(Eco.Simulation.Agents.Animal)">
+            <summary>Compose animal position text for debug text</summary>
+        </member>
+        <member name="M:Eco.Simulation.Agents.AI.BehaviorDebug.ComposeAndSendBehaviourResult(Eco.Simulation.Agents.AI.Behavior{Eco.Simulation.Agents.Animal},Eco.Simulation.Agents.Animal)">
+            <summary>Compose animal Behaviour debug message and send RPC to client</summary>
         </member>
         <member name="T:Eco.Simulation.Agents.AI.BehaviorBasic`1">
             <summary> Leaf-node behavior that runs a given function. </summary>
@@ -45,7 +54,7 @@
             <summary>Generic brain with behaviors specific to each species.</summary>
             <typeparam name="T"></typeparam>
         </member>
-        <member name="M:Eco.Simulation.Agents.AI.GridUtils.DrawLine(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3)">
+        <member name="M:Eco.Simulation.Agents.AI.GridUtils.DrawLine(System.Numerics.Vector3,System.Numerics.Vector3)">
             <summary> Fast Voxel Traversal Algorithm (Based on Bresenham's line algorithm). Uses trigonometry in comparing to grid traversal algorithm. http://www.cse.yorku.ca/~amana/research/grid.pdf </summary>
         </member>
         <member name="M:Eco.Simulation.Agents.AI.GridUtils.GridTraverse(Eco.Shared.Math.Vector2,Eco.Shared.Math.Vector2,System.Func{Eco.Shared.Math.Vector2i,System.Boolean})">
@@ -58,7 +67,7 @@
             <summary>Set the route of the animal, making sure to change the state and update the next tick based on the distance and speed. Returns needed time to finish the path </summary>
         </member>
         <member name="M:Eco.Simulation.Agents.Animal.GetObservedLevel">
-            <summary> Calculates animal observer level using <see cref="M:Eco.Simulation.Agents.ObserverDetector.ObservationLevel(Eco.Shared.Math.Vector3,System.Single)"/> function. </summary>
+            <summary> Calculates animal observer level using <see cref="M:Eco.Simulation.Agents.ObserverDetector.ObservationLevel(System.Numerics.Vector3,System.Single)"/> function. </summary>
         </member>
         <member name="M:Eco.Simulation.Agents.Animal.TryDamage(Eco.Shared.Networking.INetObject,System.Single)">
             <summary> Tries to make damage to animal. Returns <c>false</c> if animal can't take damage (already dead). </summary>
@@ -69,10 +78,10 @@
         <member name="M:Eco.Simulation.Agents.Animal.ForceTick">
             <summary>Forces <see cref="P:Eco.Simulation.Agents.Animal.NextTick"/>, usually as reaction on an event. Only updates if <see cref="P:Eco.Simulation.Agents.Animal.NextTick"/> planned for latter time. Otherwise because ticks processed by queue by updating time it may be moved latter in processing queue.</summary>
         </member>
-        <member name="M:Eco.Simulation.Agents.Animal.SetFleePositionAndDuration(Eco.Shared.Math.Vector3,System.Double)">
+        <member name="M:Eco.Simulation.Agents.Animal.SetFleePositionAndDuration(System.Numerics.Vector3,System.Double)">
             <summary>Sets flee position and duration which should initiate actual flee behavior.</summary>
         </member>
-        <member name="M:Eco.Simulation.Agents.Animal.FindFreeSpace(Eco.Shared.Math.Vector3,System.Boolean@)">
+        <member name="M:Eco.Simulation.Agents.Animal.FindFreeSpace(System.Numerics.Vector3,System.Boolean@)">
             <summary> The function is called when the animals is not moving and someone is changing blocks around (as example, putting a block inside the animal)=
             For different animals we could define different free space around - that is, for swimming animals we can't allow being on top of the water surface as they should die,
             Land animals could be pushed on top of a block.
@@ -88,13 +97,13 @@
         <member name="M:Eco.Simulation.Agents.Animal.ClearRoute">
             <summary> Make full stop for an animal and clear route</summary>
         </member>
-        <member name="M:Eco.Simulation.Agents.Animal.ObstacleAvoidance(Eco.Shared.Math.Vector3,System.Boolean)">
+        <member name="M:Eco.Simulation.Agents.Animal.ObstacleAvoidance(System.Numerics.Vector3,System.Boolean)">
             <summary> Try avoid dynamic obstacles in front of us. Forced flag allows to recalculate path even if animal already fleeing from some position. </summary>
         </member>
         <member name="M:Eco.Simulation.Agents.Animal.GetFleeDirection">
             <summary>Returns direction from <see cref="F:Eco.Simulation.Agents.Animal.FleePosition"/> to current animal position.</summary>
         </member>
-        <member name="M:Eco.Simulation.Agents.Animal.AlertNearbyAnimals(Eco.Shared.Math.Vector3,System.Single,System.Single)">
+        <member name="M:Eco.Simulation.Agents.Animal.AlertNearbyAnimals(System.Numerics.Vector3,System.Single,System.Single)">
             <summary> Apply special cases for running from a dangerous place </summary>
         </member>
         <member name="M:Eco.Simulation.Agents.Animal.SetController(Eco.Shared.Networking.INetObjectViewer,Eco.Shared.Networking.INetObjectViewer)">
@@ -115,17 +124,17 @@
         <member name="P:Eco.Simulation.Agents.Tree.WorldHomePos">
             <inheritdoc cref="P:Eco.Simulation.Agents.Organism.WorldHomePos"/>
         </member>
-        <member name="M:Eco.Simulation.AnimalSim.SpawnAnimal(Eco.Simulation.Types.AnimalSpecies,Eco.Shared.Math.Vector3,System.Action{Eco.Simulation.Agents.Animal})">
+        <member name="M:Eco.Simulation.AnimalSim.SpawnAnimal(Eco.Simulation.Types.AnimalSpecies,System.Numerics.Vector3,System.Action{Eco.Simulation.Agents.Animal})">
             <summary>
             Spawn alive animal from <paramref name="species"/> at <paramref name="pos"/>.
             Optionally <paramref name="onCreate"/> action may be provided which will be called **before** animal registered as tickable.
             It ensures animal fully initialized before first tick.
             </summary>
         </member>
-        <member name="M:Eco.Simulation.AnimalSim.SpawnCorpse(Eco.Simulation.Types.AnimalSpecies,Eco.Shared.Math.Vector3)">
+        <member name="M:Eco.Simulation.AnimalSim.SpawnCorpse(Eco.Simulation.Types.AnimalSpecies,System.Numerics.Vector3)">
             <summary> Spawn animal's corpse from <paramref name="species"/> at <paramref name="pos"/>. </summary>
         </member>
-        <member name="M:Eco.Simulation.AnimalSim.SpawnAnimalInternal(Eco.Simulation.Types.AnimalSpecies,Eco.Shared.Math.Vector3,System.Action{Eco.Simulation.Agents.Animal},System.Boolean)">
+        <member name="M:Eco.Simulation.AnimalSim.SpawnAnimalInternal(Eco.Simulation.Types.AnimalSpecies,System.Numerics.Vector3,System.Action{Eco.Simulation.Agents.Animal},System.Boolean)">
             <summary> Spawn animal corpse from <paramref name="species"/> at <paramref name="pos"/> either alive or it's <paramref name="corpse"/>. </summary>
         </member>
         <member name="M:Eco.Simulation.ClimateState.PerDay(System.Single)">
@@ -292,7 +301,7 @@
         <member name="M:Eco.Simulation.RouteProbing.RouteManager.AllWalkablesY(Eco.Shared.Math.WorldPosition3i,System.Int32,System.Int16)">
             <summary> Builds and returns list of all possible walkable positions from requested one in one axis</summary>
         </member>
-        <member name="M:Eco.Simulation.RouteProbing.RouteManager.AllWalkablesYTwoDir(Eco.Shared.Math.Vector3@,Eco.Shared.Math.Vector2,Eco.Shared.Math.Vector2,Eco.Shared.Math.Vector3,System.Single,System.Single,System.Int16)">
+        <member name="M:Eco.Simulation.RouteProbing.RouteManager.AllWalkablesYTwoDir(System.Numerics.Vector3@,Eco.Shared.Math.Vector2,Eco.Shared.Math.Vector2,System.Numerics.Vector3,System.Single,System.Single,System.Int16)">
             <summary> Find a random point along the line of motion in two directions (target/opposite) </summary>
         </member>
         <member name="M:Eco.Simulation.RouteProbing.RouteManager.NearestWalkableXYZ(Eco.Shared.Math.WorldPosition3i,System.Int32,System.Int16)">
@@ -572,6 +581,12 @@
         <member name="M:Eco.Simulation.WorldLayers.Layers.WorldLayerSettingsExtensions.ValStringTooltip(Eco.Simulation.WorldLayers.Layers.WorldLayerSettings,System.Single,System.Boolean)">
             <summary> Returns a tooltip string for the <paramref name="val"/> using <paramref name="settings"/>. Set <paramref name="relative"/> if you wanna to format value difference. </summary>
         </member>
+        <member name="P:Eco.Simulation.WorldLayers.Layers.WorldLayerSettings.OriginalDisplayName">
+            <summary>
+            Added to work around a website issue. Represents the original name as defined in the Eco mods directory. 
+            Should be replaced with a real solution in 10.0
+            </summary>
+        </member>
         <member name="M:Eco.Simulation.WorldLayers.Layers.WorldLayerSettings.GetDisplayValue(System.Single,System.Boolean)">
             <summary> Returns user-friendly representation (i.e. for temperature normalized value [0; 1] it may be value in Celsius). </summary>
         </member>
@@ -601,6 +616,14 @@
         </member>
         <member name="T:Eco.Simulation.WorldLayers.Pullers.PlantPopulationPuller.PlantInAreaFilter">
             <summary>Function which checks if plant belongs to a specific area. Uses with NetFabric.Hyperlinq for zero-allocation filters.</summary>
+        </member>
+        <member name="M:Eco.Simulation.WorldLayers.Pushers.BiomePusher.ActionOnBiomeMismatches(Eco.Shared.Math.WorldArea,Eco.Simulation.WorldLayers.WorldLayerNeighborInfo[],System.Action{System.Type,System.Type,Eco.Shared.Math.Vector3i})">
+            <summary>
+            Check if the top block of each world column in an area is the same as the column biome.
+            e.g. If we are in grasslands and there's a dirt block, there's a chance this block will become a grass block.
+            This chance is calculated according to the neighbor blocks, so if there are many grass blocks around a dirt block, the chances of turning into grass will be higher.
+            If the chance calculation is successful, <param name="mismatchAction"/> is called.
+            </summary>
         </member>
         <member name="T:Eco.Simulation.WorldLayers.Pushers.PlantSpawner.LayersInfo">
             <summary> Layers layout info for <see cref="T:Eco.Simulation.WorldLayers.Pushers.PlantSpawner"/> dependencies. </summary>

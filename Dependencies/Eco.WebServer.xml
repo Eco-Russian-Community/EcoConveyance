@@ -4,30 +4,8 @@
         <name>Eco.WebServer</name>
     </assembly>
     <members>
-        <member name="T:Eco.WebServer.DataTransferObjects.CommandMessageDTO">
-            <summary>Represents a chat output result from a command.</summary>
-        </member>
-        <member name="T:Eco.WebServer.DataTransferObjects.CommandResultDTO">
-            <summary>Result object from a command execution</summary>
-        </member>
-        <member name="P:Eco.WebServer.DataTransferObjects.CommandResultDTO.OriginalCommand">
-            <summary>Represents the original requested command</summary>
-        </member>
-        <member name="P:Eco.WebServer.DataTransferObjects.CommandResultDTO.Errored">
-            <summary>Flag determining if there was an error during execution</summary>
-        </member>
-        <member name="F:Eco.WebServer.DataTransferObjects.CommandResultDTO.CommandMessages">
-            <summary>Represents each returned action/message result from the command</summary>
-        </member>
-        <member name="T:Eco.WebServer.DataTransferObjects.ExecuteCommandDTO">
-            <summary>Represents a command execution request for the command MVC controller</summary>
-        </member>
-        <member name="T:Eco.WebServer.DataTransferObjects.ProfilingResultDTO">
-            <summary>Result object from a command execution</summary>
-        </member>
         <member name="T:Eco.WebServer.Results.JsonStreamResult">
             <summary>Custom implementation of <seealso cref="T:Microsoft.AspNetCore.Mvc.ActionResult"/> for streaming large amounts of JSON data using async methods from an <seealso cref="T:System.Collections.IEnumerable"/></summary>
-            <inheritdoc/>
         </member>
         <member name="P:Eco.WebServer.Results.JsonStreamResult.Enumerable">
             <summary><seealso cref="T:System.Collections.IEnumerable"/> instance to stream over HTTP/HTTPS to the client.</summary>
@@ -76,7 +54,6 @@
         </member>
         <member name="T:Eco.WebServer.Web.EcoApiAuthentication">
             <summary>Eco authentication handler, pulls the "apikey" parameter from the query string and validates the api user.</summary>
-            <inheritdoc/>
         </member>
         <member name="F:Eco.WebServer.Web.EcoApiAuthentication.AuthenticationType">
             <summary> Name of custom authentication type. </summary>
@@ -92,7 +69,6 @@
         </member>
         <member name="T:Eco.WebServer.Web.EcoAuthentication">
             <summary>Eco authentication handler, pulls the "authtoken" and "authtokentype" parameters from the query string and validates the user.</summary>
-            <inheritdoc/>
         </member>
         <member name="F:Eco.WebServer.Web.EcoAuthentication.AuthenticationType">
             <summary> Name of custom authentication type. </summary>
@@ -152,12 +128,12 @@
             <param name="startDay">The lower bound on the time range. Default is 0.</param>
             <param name="endDay">The upper bound on the time range. Default is now.</param>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.ChatController.GetNext(Eco.WebServer.DataTransferObjects.ChatMessageDTO,System.Int32)">
+        <member name="M:Eco.WebServer.Web.Controllers.ChatController.GetNext(Eco.Web.Core.DataTransferObjects.V1.ChatMessageV1,System.Int32)">
             <summary>Gets the. <code>numNextMessages</code> chat messages sent after the given message on the same tag.</summary>
             <param name="message">The message in question.</param>
             <param name="numNextMessages">The number of following messages to return.</param>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.ChatController.GetPrevious(Eco.WebServer.DataTransferObjects.ChatMessageDTO,System.Int32)">
+        <member name="M:Eco.WebServer.Web.Controllers.ChatController.GetPrevious(Eco.Web.Core.DataTransferObjects.V1.ChatMessageV1,System.Int32)">
             <summary>Gets the. <code>numPreviousMessages</code> chat messages sent before the given message on the same tag.</summary>
             <param name="message">The message in question.</param>
             <param name="numPreviousMessages">The number of preceding messages to return.</param>
@@ -167,15 +143,15 @@
             <param name="message">The message to send.</param>
             <param name="username">User who wants to send message.</param>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.ChatController.ToGameMessage(Eco.WebServer.DataTransferObjects.ChatMessageDTO)">
-            <summary>Converts a <seealso cref="T:Eco.WebServer.DataTransferObjects.ChatMessageDTO"/> instance to a regular Eco <seealso cref="T:Eco.Gameplay.Systems.Messaging.Chat.ChatMessage"/> instance.</summary>
-            <param name="message"><seealso cref="T:Eco.WebServer.DataTransferObjects.ChatMessageDTO"/> instance to convert.</param>
+        <member name="M:Eco.WebServer.Web.Controllers.ChatController.ToGameMessage(Eco.Web.Core.DataTransferObjects.V1.ChatMessageV1)">
+            <summary>Converts a <seealso cref="T:Eco.Web.Core.DataTransferObjects.V1.ChatMessageV1"/> instance to a regular Eco <seealso cref="T:Eco.Gameplay.Systems.Messaging.Chat.ChatMessage"/> instance.</summary>
+            <param name="message"><seealso cref="T:Eco.Web.Core.DataTransferObjects.V1.ChatMessageV1"/> instance to convert.</param>
             <returns>Converted <seealso cref="T:Eco.Gameplay.Systems.Messaging.Chat.ChatMessage"/> instance.</returns>
         </member>
         <member name="T:Eco.WebServer.Web.Controllers.CommandController">
             <summary>MVC <seealso cref="T:Microsoft.AspNetCore.Mvc.Controller"/> instance for accessing and interacting with the Eco server chat commands.</summary>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.CommandController.ExecCommand(Eco.WebServer.DataTransferObjects.ExecuteCommandDTO)">
+        <member name="M:Eco.WebServer.Web.Controllers.CommandController.ExecCommand(Eco.Web.Core.DataTransferObjects.V1.ExecuteCommandV1)">
             <summary>Executes a chat command on the server.</summary>
         </member>
         <member name="M:Eco.WebServer.Web.Controllers.ControllerExtensions.GetUserFromContext(Microsoft.AspNetCore.Mvc.Controller)">
@@ -200,7 +176,7 @@
         <member name="M:Eco.WebServer.Web.Controllers.ElectionController.Votes(System.Int32)">
             <summary> Returns a list of votes that were made on the indicated election. </summary>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.ElectionController.Vote(Eco.WebServer.DataTransferObjects.RunoffVoteDTO,System.Boolean)">
+        <member name="M:Eco.WebServer.Web.Controllers.ElectionController.Vote(Eco.Web.Core.DataTransferObjects.V1.RunoffVoteV1,System.Boolean)">
             <summary> Places a vote on behalf of the given player.  Can only be called if an election is currently running. </summary>
             <param name="vote">The player's vote.  Must contain a ranked list of all candidates for the current election.</param>
             <param name="forceVote">Force vote ignoring election process.</param>
@@ -210,7 +186,7 @@
             <summary> Forces the currently running election to end now, and for the current election winner to become the leader. Can only be called by an admin or dev. </summary>
             <param name="electionId">ID of the election.</param>
         </member>
-        <member name="M:Eco.WebServer.Web.Controllers.ElectionController.AddComment(Eco.WebServer.DataTransferObjects.ElectionCommentDTO,System.Int32)">
+        <member name="M:Eco.WebServer.Web.Controllers.ElectionController.AddComment(Eco.Web.Core.DataTransferObjects.V1.ElectionCommentV1,System.Int32)">
             <summary> Adds a comment to the currently running election, if any. </summary>
             <param name="comment">The comment to be added to the election.</param>
             <param name="electionId">ID of the election.</param>
@@ -239,7 +215,6 @@
         </member>
         <member name="T:Eco.WebServer.Web.Controllers.LogController">
             <summary>MVC <seealso cref="T:Microsoft.AspNetCore.Mvc.Controller"/> instance that provides API access to the logs generated by the Eco game server.</summary>
-            <inheritdoc/>
         </member>
         <member name="M:Eco.WebServer.Web.Controllers.LogController.GetAllLogs">
             <summary>Retrieves a list of all log files on the server.</summary>
@@ -386,14 +361,13 @@
         </member>
         <member name="T:Eco.WebServer.Web.Models.ChatCommandRequest">
             <summary>Defines an <seealso cref="T:Eco.Gameplay.Systems.Chat.IChatClient"/> instance for making web based command requests.</summary>
-            <inheritdoc/>
         </member>
         <member name="M:Eco.WebServer.Web.Models.ChatCommandRequest.ExecuteCommand(System.String)">
             <summary>Executes the command request instance with the specified command</summary>
             <param name="command">Command to execute</param>
         </member>
         <member name="M:Eco.WebServer.Web.Models.ChatCommandRequest.GetResponseDTO">
-            <summary>Returns the finalized <seealso cref="T:Eco.WebServer.DataTransferObjects.CommandResultDTO"/> object</summary>
+            <summary>Returns the finalized <seealso cref="T:Eco.Web.Core.DataTransferObjects.V1.CommandResultV1"/> object</summary>
         </member>
         <member name="T:Eco.WebServer.Web.Swagger.AuthPolicyOperationFilter">
             <summary>Custom <seealso cref="T:Swashbuckle.AspNetCore.SwaggerGen.IOperationFilter"/> for populating Eco authentication information into the server's Swagger documentation.</summary>

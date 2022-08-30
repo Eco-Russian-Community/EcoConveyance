@@ -98,6 +98,9 @@
         <member name="M:Eco.World.World.GetBlock(Eco.Shared.Math.WrappedWorldPosition3i)">
             <summary> Returns the block at the location or Block.Empty. </summary>
         </member>
+        <member name="M:Eco.World.World.GetTopSolidNonConstructedPos(Eco.Shared.Math.Vector2i)">
+            <summary>Returns the position of the topmost solid, non-constructed block in a world column.</summary>
+        </member>
         <member name="M:Eco.World.World.ClampToWaterHeight(Eco.Shared.Math.Vector3i)">
             <summary> Clamps Y coordinate of <paramref name="pos"/> to water height </summary>
         </member>

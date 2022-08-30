@@ -43,10 +43,10 @@ namespace Eco.Mods.EcoConveyance.Objects
 			AddOccupancy<ConveyorCrateObject>(new List<BlockOccupancy>() { new BlockOccupancy(Vector3i.Zero, null) });
 		}
 
-		//protected override void OnCreate()
+		//protected override void OnCreatePreInitialize()
 		//{
-		//	Log.WriteWarningLineLocStr("ConveyorCrateObject: OnCreate()");
-		//	base.OnCreate();
+		//	Log.WriteWarningLineLocStr("ConveyorCrateObject: OnCreatePreInitialize()");
+		//	base.OnCreatePreInitialize();
 
 		//	this.OnOperatingChange.Add(OnOperatingChange);
 		//	void OnOperatingChange()

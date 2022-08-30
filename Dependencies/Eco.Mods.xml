@@ -82,6 +82,18 @@
         <member name="T:Eco.Mods.TechTree.Wolf">
             <summary>Auto-generated class. All your changes will be wiped with next update!</summary>
         </member>
+        <member name="T:Eco.Mods.TechTree.MasterTrackerTalent">
+            <summary>This talents give user ability to highlight last hit animal using <see cref="T:Eco.Gameplay.Players.ConstantHighlightSetting"/>.</summary>
+        </member>
+        <member name="M:Eco.Mods.TechTree.MasterTrackerTalent.RemoveFunc(Priority_Queue.SimplePriorityQueue{Eco.Gameplay.Players.ConstantHighlightInfo,System.Double},Eco.Gameplay.Players.User)">
+            <summary> Method used as param to pass for farthest animal removal from highlight </summary>
+        </member>
+        <member name="M:Eco.Mods.TechTree.MasterTrackerTalent.OnAnimalDestroyed(Eco.Simulation.Agents.Animal,Eco.Gameplay.Players.ConstantHighlightSetting)">
+            <summary>Callback to remove destroyed animal from highlight list and unsub from destroyed animal </summary>
+        </member>
+        <member name="M:Eco.Mods.TechTree.MasterTrackerTalent.OnObjectRemoved(Eco.Gameplay.Players.ConstantHighlightSetting,Eco.Gameplay.Players.ConstantHighlightInfo)">
+            <summary>Callback need to remove sub for animal destruction(after which it removed from highlight) because the animal now is not present in highlight list. </summary>
+        </member>
         <member name="T:Eco.Mods.TechTree.AshlarBasaltRecipe">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
@@ -517,6 +529,12 @@
         <member name="T:Eco.Mods.TechTree.FiberglassItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
+        <member name="T:Eco.Mods.TechTree.FlaxFiberItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
+        <member name="T:Eco.Mods.TechTree.FlaxStemItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
         <member name="T:Eco.Mods.TechTree.FoxCarcassItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
@@ -586,6 +604,12 @@
         <member name="T:Eco.Mods.TechTree.LightBulbItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
+        <member name="T:Eco.Mods.TechTree.LinenFabricItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
+        <member name="T:Eco.Mods.TechTree.LinenYarnItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
         <member name="T:Eco.Mods.TechTree.MarmotCarcassItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
@@ -636,6 +660,10 @@
         </member>
         <member name="T:Eco.Mods.TechTree.PickaxeItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
+        <member name="T:Eco.Mods.TechTree.PictureItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+            <summary>Holds the <see cref="T:Eco.Gameplay.Players.UserTexture"/> for displaying it on <see cref="T:Eco.Mods.TechTree.PictureFrameItem"/>, created by <see cref="T:Eco.Mods.TechTree.CameraItem"/></summary>
         </member>
         <member name="T:Eco.Mods.TechTree.PistonItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
@@ -695,6 +723,9 @@
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
         <member name="T:Eco.Mods.TechTree.SoftwoodBoardItem">
+            <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
+        </member>
+        <member name="T:Eco.Mods.TechTree.SpoiledFoodItem">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
         <member name="T:Eco.Mods.TechTree.SteamTractorHarvesterItem">
@@ -1357,17 +1388,20 @@
         <member name="T:Eco.Mods.TechTree.TailoringSkill">
             <summary>Auto-generated class. Don't modify it! All your changes will be wiped with next update! Use Mods* partial methods instead for customization.</summary>
         </member>
+        <member name="T:Eco.Mods.TechTree.WoodShopCartObject">
+            <summary> This represents wood shop cart. It's a special shop which you can move by pulling it. Implements IFreezable, so when nobody pull it, it won't move anyway. </summary>
+        </member>
+        <member name="T:Eco.Mods.TechTree.PictureFrameObject">
+            <summary>WorldObject that uses <see cref="T:Eco.Gameplay.Components.PictureFrameComponent"/> to display images in the world.</summary>
+        </member>
         <member name="M:Eco.Mods.TechTree.StarterCampItem.OverlappingPlots(Eco.Shared.Math.Vector3i,Eco.Shared.Math.Quaternion)">
             <summary>Iterates the plots that this world object covers.</summary>
         </member>
-        <member name="M:Eco.Mods.TechTree.BedComponent.BedPickupConfirmation">
-            <summary>Return a warning text if there's any sleeping user on this bed</summary>
+        <member name="M:Eco.Mods.TechTree.CraneObject.CanInteract(System.Numerics.Vector3,System.Numerics.Vector3,Eco.Shared.Items.InteractionInfo)">
+            <inheritdoc cref="M:Eco.Gameplay.Interactions.IInteractionChecker.CanInteract(System.Numerics.Vector3,System.Numerics.Vector3,Eco.Shared.Items.InteractionInfo)"/>
         </member>
-        <member name="M:Eco.Mods.TechTree.CraneObject.CanInteract(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Items.InteractionInfo)">
-            <inheritdoc cref="M:Eco.Gameplay.Interactions.IInteractionChecker.CanInteract(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Items.InteractionInfo)"/>
-        </member>
-        <member name="M:Eco.Mods.TechTree.ExcavatorObject.CanInteract(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Items.InteractionInfo)">
-            <inheritdoc cref="M:Eco.Gameplay.Interactions.IInteractionChecker.CanInteract(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Items.InteractionInfo)"/>
+        <member name="M:Eco.Mods.TechTree.ExcavatorObject.CanInteract(System.Numerics.Vector3,System.Numerics.Vector3,Eco.Shared.Items.InteractionInfo)">
+            <inheritdoc cref="M:Eco.Gameplay.Interactions.IInteractionChecker.CanInteract(System.Numerics.Vector3,System.Numerics.Vector3,Eco.Shared.Items.InteractionInfo)"/>
         </member>
         <member name="T:Eco.Mods.TechTree.LargeDoorUtils.LargeDoorMessagesContainer">
             <summary> Custom messages container for the OnOffComponent of Large Doors.</summary>
@@ -1381,8 +1415,49 @@
         <member name="M:Eco.Mods.TechTree.TagDefinitions.Initialize">
             <summary> Called on Mods initialization for the marker interface <see cref="T:Eco.Core.Plugins.Interfaces.IModInit"/>. Registers all <see cref="T:Eco.Gameplay.Items.TagDefinition"/> from <see cref="F:Eco.Mods.TechTree.TagDefinitions.Definitions"/>. </summary>
         </member>
-        <member name="M:Eco.Mods.TechTree.FishingPoleItem.CastLure(Eco.Gameplay.Players.Player,Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3)">
+        <member name="T:Eco.Mods.TechTree.CameraItem">
+            <summary> Cameras allow users to capture and store images. </summary>
+            <remarks> It's a 'ToolItem' because it needs durability, but it doesn't interact with any other items directly. </remarks>
+        </member>
+        <member name="M:Eco.Mods.TechTree.CameraItem.CaptureImage(Eco.Gameplay.Players.Player,System.Byte[])">
+            <summary> Capture an image and store it on the camera's memory. </summary>
+            <remarks> 'imageData' should be a PNG in 'byte[]' form.         </remarks>
+        </member>
+        <member name="M:Eco.Mods.TechTree.FishingPoleItem.CastLure(Eco.Gameplay.Players.Player,System.Numerics.Vector3,System.Numerics.Vector3)">
             <summary> Creates the LureEntity from a Client-command, assigning its controller, position, and the force to apply at spawn. </summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Birch.BirchSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Cedar.CedarSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Ceiba.CeibaSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Fir.FirSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Joshua.JoshuaSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Oak.OakSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.OldGrowthRedwood.OldGrowthRedwoodSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Palm.PalmSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Redwood.RedwoodSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.SaguaroCactus.SaguaroCactusSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
+        </member>
+        <member name="M:Eco.Mods.Organisms.Spruce.SpruceSpecies.SetDefaultProperties">
+            <summary>Hook for setting the base default properties of a plant species before initialization.</summary>
         </member>
         <member name="T:Eco.Mods.Organisms.Behaviors.FindAndEatPlantsBehavior">
             <summary>An enumerator gets instantiated per-animal while seeking food and deleted when the animal is satisfied. </summary>
@@ -1390,12 +1465,11 @@
         <member name="M:Eco.Mods.Organisms.Behaviors.MovementBehaviors.FindTargetSwimPosition(Eco.Simulation.Agents.Animal,Eco.Shared.Math.Vector2,System.Boolean,System.Int32,Eco.Shared.Math.Vector3i@)">
             <summary>Finds target swim position taking into account species characteristics like if it can swim near coast and can float on surface.</summary>
         </member>
-        <member name="M:Eco.Mods.Organisms.LandPredatorBrain.ReactOnBlock(Eco.Simulation.Agents.Animal,Eco.Shared.Math.Vector3,System.Single)">
+        <member name="M:Eco.Mods.Organisms.LandPredatorBrain.ReactOnBlock(Eco.Simulation.Agents.Animal,System.Numerics.Vector3,System.Single)">
             <summary> Provide predator's reaction on blocks around </summary>
         </member>
         <member name="T:Eco.Mods.ChatLog.ChatLogger">
             <summary> Logs chat and related information (such as login/logout events) to plain text files for server administration purposes. </summary>
-            <inheritdoc/>
         </member>
         <member name="M:Eco.Mods.ChatLog.ChatLogger.OnMessageSent(Eco.Gameplay.Systems.Messaging.Chat.ChatMessage)">
             <summary>Formats an incoming <seealso cref="T:Eco.Gameplay.Systems.Messaging.Chat.ChatMessage"/> and logs it to its relevant log file.</summary>
@@ -1410,6 +1484,15 @@
             <param name="category">Category of the log message</param>
             <param name="name">Name of the NLog logger used to log the message.</param>
             <param name="message">Message to log with NLog.</param>
+        </member>
+        <member name="M:Eco.Mods.QACommands.SpawnObjects(Eco.Gameplay.Players.User,System.Collections.Generic.List{Eco.Gameplay.Items.WorldObjectItem},System.Action{Eco.Gameplay.Objects.WorldObject})">
+            <summary> Spawn multiple objects by given WorldObjectItems. There is an optional onSpawned action to perform for every spawned object. </summary>
+        </member>
+        <member name="M:Eco.Mods.QACommands.SpawnObjects(Eco.Gameplay.Players.User,System.Func{System.Type,System.Boolean},System.Action{Eco.Gameplay.Objects.WorldObject})">
+            <summary> Spawn multiple objects filtered by a predicate. There is an optional onSpawned action to perform for every spawned object. </summary>
+        </member>
+        <member name="T:Eco.Gameplay.Civics.CivicAction_ChangeSettlementName">
+            <summary>A civic action that lets you change the name of a settlement.</summary>
         </member>
         <member name="M:TreeEntity.TryDamageTrunk(Eco.Gameplay.GameActions.GameActionPack,Eco.Shared.Networking.INetObject,System.Single,Eco.Gameplay.Interactions.InteractionContext)">
             <summary> Perform damaging healthy branches and trunk (if it's a fallen tree) </summary>

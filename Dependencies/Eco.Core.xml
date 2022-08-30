@@ -10,6 +10,10 @@
             deleted as well.
             </summary>
         </member>
+        <member name="T:Eco.Core.AWS.S3StoragePlugin">
+            <summary><see cref="T:Eco.Core.Plugins.Interfaces.IFileStoragePlugin"/> implementation to allow Eco server access to an S3 bucket for backup retention on SLG services.</summary>
+            <seealso cref="T:Eco.Core.Plugins.Interfaces.IFileStoragePlugin"/>
+        </member>
         <member name="M:Eco.Core.Backup.BackupPlugin.GetBackupStoragesAsync(System.String)">
             <summary>Returns all backup storages ordered by chronological order.</summary>
         </member>
@@ -74,7 +78,10 @@
             <summary> Appends Recovery method if any recovery property assignments was added. </summary>
         </member>
         <member name="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerializedTypeName(System.Reflection.MemberInfo)">
-            <summary>Checks if <see cref                                ="T:System.Type"/> may be referenced in serialized data, but may not be serialized itself. Any <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerialized(System.Reflection.MemberInfo)"/> type is also <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerializedTypeName(System.Reflection.MemberInfo)"/>, but not all <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerializedTypeName(System.Reflection.MemberInfo)"/> types are <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerialized(System.Reflection.MemberInfo)"/>.</summary>
+            <summary>Checks if <see cref ="T:System.Type"/> may be referenced in serialized data, but may not be serialized itself. Any <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerialized(System.Reflection.MemberInfo)"/> type is also <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerializedTypeName(System.Reflection.MemberInfo)"/>, but not all <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerializedTypeName(System.Reflection.MemberInfo)"/> types are <see cref="M:Eco.Core.Controller.CoreAttributeExtensions.IsSerialized(System.Reflection.MemberInfo)"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.CoreAttributeExtensions.IsPropSyncToView(Eco.Core.Controller.IController,System.String)">
+            <summary>See if a given property name on this type will be getting updates from controller system</summary>
         </member>
         <member name="T:Eco.Core.Controller.ViewClassAttribute">
             <summary>Flags on view classes.</summary>
@@ -98,7 +105,9 @@
             <summary> Tag for the view system to create a view even if there are no synctoview properties in the class, affects all derived classes too. </summary>
         </member>
         <member name="T:Eco.Core.Controller.NegatedNameAttribute">
-            <summary> For boolean properties that serve as context, this will be the negated name that we also add to context (so the bool 'Bought' can have a negated context name 'Sold' that is shown to the player). </summary>
+            <summary> For boolean properties that serve as context, this will be the negated name that we also add to context (so the bool 'Bought' can have a negated context name 'Sold' that is shown to the player). 
+            Note: if you want a dynamic name for the tab, create a property named ComponentTabName in the class and make it synctoview. 
+            </summary>
         </member>
         <member name="T:Eco.Core.Controller.ViewMemberAttribute">
             <summary>
@@ -133,15 +142,81 @@
         <member name="T:Eco.Core.Controller.VisibilityParamAttribute">
             <summary> Specifies the name of another property on this same object that determines the bool visbility state of this property. </summary>
         </member>
+        <member name="T:Eco.Core.Controller.EnabledParamAttribute">
+            <summary> Specifies the name of another property on this same object that determines if this UI should be enabled or not.
+            If the property using this is a list, its expcted the property pointed to is also a list.</summary>
+        </member>
         <member name="T:Eco.Core.Controller.AutogenAttribute">
             <summary> Can pass in the name of the UI that will be used on the client, if you want to override the default.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ViewCodeGenerator.ProcessSharedTypes(Eco.Core.Controller.Generators.AotCodeGen)">
+            <summary>Processes shared types (available both on server and client).</summary>
         </member>
         <member name="M:Eco.Core.Controller.ViewCodeGenerator.GenerateViewProperties(System.Text.StringBuilder,System.Collections.Generic.IEnumerable{Eco.Shared.View.ViewMemberInfo},Eco.Core.Controller.ControllerMarshalerService)">
             <summary>Generates view properties for SyncToView properties and methods from <paramref name="members"/>.</summary>
         </member>
+        <member name="T:Eco.Core.Controller.BsonCachedPropertyAttribute">
+            <summary>
+            Should be used with property having <see cref="F:Eco.Shared.View.SyncFlags.Cached"/>, specifies which property used as a cached counterpart of the attributed property. May be set manually or will be automatically added by <c>Eco.Fody.SyncToViewCacheWeaving</c> for every property with the flag.
+            Then the getter of the cached property will be used by <see cref="T:Eco.Core.Controller.SyncPropertyInfo"/> instead of the property getter.
+            When added manually then user code is responsible for cached value invalidation. May be preferred over auto-weaving when cached value is immutable or class doesn't match auto-weaving conditions.
+            <example><code><![CDATA[
+            public class Foo
+            {
+                BSONCachedValue CachedItems { get; set; }
+                [SyncToView(SyncFlags.Cached), BsonCachedProperty("CachedItems")] public List<Item> Items { get; }
+                public Foo(IEnumerable<Item> items)
+                {
+                   this.Items = items.ToList();
+                   this.CachedItems = BSONCachedValue.Cache(this.Items.ToBson());
+                }
+            }
+            ]]></code></example>
+            Read more details about auto-caching in `Eco.Fody/README.md`.
+            </summary>
+        </member>
+        <member name="P:Eco.Core.Controller.BsonCachedPropertyAttribute.CachedPropertyName">
+            <summary>Name of cached property which will be used instead of the property during view synchronization.</summary>
+        </member>
+        <member name="T:Eco.Core.Controller.CachedAttribute">
+             <summary>Can be used to enable caching for property. Once evaluated the property won't be recalculated until receive PropertyChanged event. It uses Fody weaving for property body replacement generation.</summary>
+             <example><code><![CDATA[
+             public class Sample : INotifyPropertyChanged
+             {
+                public event PropertyChangedEventHadler PropertyChanaged;
+             
+                [Cached] public DateTime CachedDateTime => Date.Now; 
+             }
+             // will be transformed to
+             public class Sample : INotifyPropertyChanged
+             {
+                public event PropertyChangedEventHadler PropertyChanaged;
+                DateTime? <CachedDateTime>k_Cached;
+            
+                public Sample()
+                {
+                    PropertyChanged += Cache_OnPropertyChanged; 
+                }
+            
+                public void Cache_OnPropertyChanged(object source, PropertyChangedEventArgs args)
+                {
+                    if (args.PropertyName == "CachedDateTime") this.<CachedDateTime>k_Cached = null;
+                }
+             
+                [Cached] public DateTime CachedDateTime => this.<CachedDateTime>k_Cached ??= Date.Now; 
+             }
+             ]]></code></example>
+        </member>
         <member name="T:Eco.Core.Controller.ControllerManager">
             <summary>Manages all controllers on server-side. Controllers are server objects which has view on the client.</summary>
             <remarks>For debugging purposes you may run build with /p:DefineConstants=LOG_VIEW_SYSTEM or you can enable it in .csproj file. In this mode it will produce ViewData-{date}.txt file with sorted view data in stable order.</remarks>
+        </member>
+        <member name="P:Eco.Core.Controller.ControllerManager.MarshalersBasestTypes">
+            <summary> Find basest types which implements both IPropertyChanged and INotifyPropertyChanged </summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerManager.SubscribeWithoutTracking(Eco.Core.Controller.IController,System.String,System.Action)">
+            <summary>Creates a subscription but doesnt track it within a Subscriptions object. Should only be used when something is subscribing to its own properties,
+            meaning both 'watched' and 'watcher' are a single object and die at the same time.</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerManager.SubscribeController(Eco.Core.Controller.IController,Eco.Shared.View.ISubscriptions,System.String,System.Action)">
             <summary>Subscribes to controller and registers subscription in <paramref name="subscriptions"/>.</summary>
@@ -171,17 +246,14 @@
         <member name="M:Eco.Core.Controller.ControllerManager.RemoveFromControllerDictionaryIfNoBindings(Eco.Core.Controller.IController)">
             <summary>Removes the controller instance from the dictionary of controllers if there are no bound clients to it.</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerManager.NotifyChanged(System.Object,System.ComponentModel.PropertyChangedEventArgs)">
-            <summary> For use with INotifyPropertyChanged, set as the PropertyChanged event handler. </summary>
+        <member name="M:Eco.Core.Controller.ControllerManager.NotifyChanged(Eco.Core.Controller.IController,System.ComponentModel.PropertyChangedEventArgs)">
+            <summary>Used in <see cref="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalSubscribe(System.Type,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)"/> as all controllers property changes handler.</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerManager.NotifyChanged(Eco.Core.Controller.IController,System.String)">
-            <summary>Tag the given property on the given controller to be synced to clients, ignoring the call if the controller is bound to nothing.</summary>
+        <member name="M:Eco.Core.Controller.ControllerManager.GetDependencies(Eco.Core.Controller.IController,System.String)">
+            <summary>Returns <paramref name="property"/> dependencies (properties with <see cref="T:Eco.Core.Controller.DependsOnControllerAttribute"/>).</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerManager.NotifySubscriptions(Eco.Core.Controller.IController,System.String)">
-            <summary>Notifies server side subscriptions about property change.</summary>
-        </member>
-        <member name="M:Eco.Core.Controller.ControllerManager.NotifyClients(Eco.Core.Controller.IController,System.String)">
-            <summary>Notifies bounded clients about property change.</summary>
+        <member name="M:Eco.Core.Controller.ControllerManager.NotifyClients(Eco.Core.Utils.ThreadSafeHashSet{Eco.Core.Controller.IMvcNetClient},Eco.Core.Controller.IController,System.String)">
+            <summary>Notifies bounded client about property change.</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerManager.PackageController(Eco.Core.Controller.IController,Eco.Core.Controller.IMvcNetClient,Eco.Core.Controller.ControllerManager.PackageFlags)">
             <summary>Package up the given controller for the given client.
@@ -192,6 +264,13 @@
         </member>
         <member name="M:Eco.Core.Controller.ControllerManager.PropertySyncs(Eco.Core.Controller.IController,System.String)">
             <summary>Return true if the property is syncs to the client (marked SyncToView or Eco) </summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerManager.RegisterPropertyChangedHandlers">
+            <summary>
+            Registers global PropertyChanged handler for all controller types (inherited from <see cref="T:Eco.Core.Controller.IController"/>) delegating to <see cref="M:Eco.Core.Controller.ControllerManager.NotifyChanged(Eco.Core.Controller.IController,System.ComponentModel.PropertyChangedEventArgs)"/>.
+            When any property on any controller instance changes it triggers PropertyChanged event (either explicitly by <see cref="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(System.Object,System.String)"/> or by PropertyChanged.Fody weaving which fires change via invoker for all controllers implementing <see cref="T:System.ComponentModel.INotifyPropertyChanged"/>).
+            <see cref="M:Eco.Core.Controller.ControllerManager.NotifyChanged(Eco.Core.Controller.IController,System.ComponentModel.PropertyChangedEventArgs)"/> will only proceed with properties which marked for client synchronization (having [SyncToView] or [Eco] attribute).
+            </summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerManager.GetControllerTypeId(System.Type)">
             <summary> Returns controller type id (<see cref="F:Eco.Shared.View.ViewClassInfo.TypeID"/>) for <paramref name="type"/>. </summary>
@@ -210,7 +289,22 @@
             <summary>Returns own implemented interfaces (not inherited from base types).</summary>
         </member>
         <member name="T:Eco.Core.Controller.ControllerMarshalerService">
-            <summary>Service for managing <see cref="T:Eco.Core.Controller.IControllerMarshaler"/> creation and providing marshaling info for <see cref="T:Eco.Core.Controller.ControllerManager"/> and <see cref="T:Eco.Core.Controller.ViewCodeGenerator"/>.</summary>
+            <summary>
+            Service for managing <see cref="T:Eco.Core.Controller.IControllerMarshaler"/> creation and providing marshaling info for <see cref="T:Eco.Core.Controller.ControllerManager"/> and <see cref="T:Eco.Core.Controller.ViewCodeGenerator"/>.
+            Marshaling info then used for generating views for the client and syncing view data using <see cref="T:Eco.Core.Controller.ISyncMemberInfo"/> members.
+            </summary>
+            <sample>
+            // controller class
+            class MyObject : IController
+            {
+                [SyncToView] public string Name { get; set; }
+            }
+            // view generated for the client by info gathered by ControllerMarshalerService using ViewCodeGenerator
+            class MyObjectView : View
+            {
+                public string Name { get; set; }
+            }
+            </sample>
         </member>
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.GetMarshalers">
             <summary>Returns all unique controller marshalers. Only available after <see cref="M:Eco.Core.Controller.ControllerMarshalerService.CreateMarshalers"/>.</summary>
@@ -233,11 +327,14 @@
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.AddBasicTypes">
             <summary>Used to create view class infos for basic types, will create as BooleanView, SingleView, StringVew, Vector3iView, etc.</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerMarshalerService.GetOrAddMarshaler(System.Type)">
+        <member name="M:Eco.Core.Controller.ControllerMarshalerService.AddBasicMarshaler(System.Type,System.String)">
+            <summary>Adds basic marshaler for one of standard types (like string, Boolean etc).</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerMarshalerService.EnsureMarshaler(System.Type)">
             <summary>Returns <see cref="T:Eco.Core.Controller.ControllerMarshaler"/> for the <paramref name="type"/>. That marshaler can be used to generate View and serialize to BSON.</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.GetOrAddClassMarshalerRecursive(System.Type)">
-            <summary>Get or adds <see cref="M:Eco.Core.Controller.ControllerMarshalerService.GetOrAddMarshaler(System.Type)"/> for <paramref name="type"/>. If the type shouldn't have own <see cref="T:Eco.Core.Controller.IControllerMarshaler"/> then it will reuse base class marshaler.</summary>
+            <summary>Get or adds <see cref="M:Eco.Core.Controller.ControllerMarshalerService.EnsureMarshaler(System.Type)"/> for <paramref name="type"/>. If the type shouldn't have own <see cref="T:Eco.Core.Controller.IControllerMarshaler"/> then it will reuse base class marshaler.</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.TryGetMarshaler(System.Type,Eco.Core.Controller.IControllerMarshaler@)">
             <summary>Returns existing <see cref="T:Eco.Core.Controller.IControllerMarshaler"/> (previously created with <see cref="M:Eco.Core.Controller.ControllerMarshalerService.CreateMarshalers"/>).</summary>
@@ -275,9 +372,6 @@
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.CreateViewMemberInfo(System.Reflection.MemberInfo)">
             <summary>Creates <see cref="T:Eco.Shared.View.ViewMemberInfo"/> from <paramref name="info"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerMarshalerService.GetSimpleName(System.String)">
-            <summary>Returns simple name (without explicit interface specification). I.e. Eco.Core.Systems.IRegistrar.IdToObj => IdToObj.</summary>
-        </member>
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.RegisterName(System.String)">
             <summary>Add the <paramref name="name"/> (if missing) to the <see cref="F:Eco.Core.Controller.ControllerMarshalerService.MemberNameToID"/> lookup and returns mapped IDs.</summary>
         </member>
@@ -289,6 +383,17 @@
         </member>
         <member name="M:Eco.Core.Controller.ControllerMarshalerService.GenerateDefaultViewTypeName(System.Type)">
             <summary>Generates default view type name for <paramref name="type"/>.</summary>
+        </member>
+        <member name="T:Eco.Core.Controller.ControllerPropertyAttribute">
+            <summary>Attribute which may be used to mark a property/method as controller property which may be used in Subscribe/Changed methods. By default only properties with <see cref="N:Eco"/>, <see cref="T:Eco.Core.Controller.SyncToViewAttribute"/> and <see cref="T:Eco.Core.Controller.ClientInterfacePropertyAttribute"/> notified, but if you still need to subscribe to property without syncing to client then the attribute may be used.</summary>
+        </member>
+        <member name="T:Eco.Core.Controller.ControllerPropertyNameAttribute">
+            <summary>
+            Attribute marking a parameter as a controller property name for static analysis (i.e. ControllerSubscribeAnalyzer). Requires controller passed as an another parameter of same method.
+            By default uses previous parameter as controller, but the controller parameter may be explicitly specified with optional <see cref="P:Eco.Core.Controller.ControllerPropertyNameAttribute.ControllerParameterName"/> property.
+            A property with the attribute should exists on subject and have sync attributes like [SyncToView] or [Eco]. If property isn't constant (string literal) then it should be either
+            parameter reference for a parameter with <see cref="T:Eco.Core.Controller.ControllerPropertyNameAttribute"/> or should be suppressed with disable warning or SuppressMessage attribute.
+            </summary>
         </member>
         <member name="T:Eco.Core.Controller.ControllerSubscriptions">
             <summary>Holds controller subscriptions for <see cref="T:Eco.Core.Controller.ControllerManager"/>. Compatible with <see cref="T:Eco.Shared.View.IObservable"/> interface for Subscriptions System.</summary>
@@ -320,66 +425,41 @@
         <member name="M:Eco.Core.Controller.ControllerSubscriptions.NotifyChanged(System.String)">
             <summary>Notifies all subscriptions about property change.</summary>
         </member>
+        <member name="M:Eco.Core.Controller.ControllerSubscriptions.HasProperty(System.String)">
+            <summary>Checks if <see cref="F:Eco.Core.Controller.ControllerSubscriptions.controllerType"/> has property with specified name.</summary>
+        </member>
         <member name="M:Eco.Core.Controller.ControllerSubscriptions.Cleanup">
             <summary>Removes all "dead" subscriptions.</summary>
         </member>
-        <member name="T:Eco.Core.Controller.ForwardAttribute">
-            <summary>Base class for attributes allowing forwarding of some actions from a property to a class containing that property.</summary>
-        </member>
-        <member name="F:Eco.Core.Controller.ForwardAttribute.PropertyMember">
-            <summary>The name of the member on the property we're marking</summary>
-        </member>
-        <member name="F:Eco.Core.Controller.ForwardAttribute.ThisMethod">
-            <summary>The name of the method on 'this' that we want to call</summary>
-        </member>
-        <member name="T:Eco.Core.Controller.ForwardEventAttribute">
+        <member name="T:Eco.Core.Controller.Generators.AotCodeGen">
             <summary>
-            Allows a class to forward events on a property to its own methods, updating the subscriptions when the property changes.
-            <br></br><br></br>
-            IE, CreditComponent has a property containing a BankAccount and it uses this attribute to call one of its own methods whenever BalanceChanged event is raised.
-            With this attribute, when the bank account changes this subscription will be properly unsubscribed from the old and resubscribed to the new.
-            <br></br><br></br>
-            NOTE: When putting this on a property in a class, you must also hook it up to fody. To do this add this line, which will get magically called by fody:
-            <code>
-            public void OnPropertyChanged(string propertyName, object before, object after) => ForwardEventsAttribute.DoForwarding(this, propertyName, before, after);
-            </code>
-            </summary>
-            <remarks>
-            See <see cref="M:Eco.Core.Controller.ForwardingUtils.CleanupForwarding(System.Object)"/> before use.
-            </remarks>
-        </member>
-        <member name="T:Eco.Core.Controller.ForwardPropertyChangeAttribute">
-            <summary>
-            Allows a class to forward property changed callbacks from its property to its own methods, updating the subscriptions when the property changes.
-            This attribute can only be applied to a property of type that implements <see cref="T:Eco.Core.Controller.IController"/> interface.
-            <br></br><br></br>
-            IE, CreditComponent has a property containing a BankAccount and it uses this attribute to call one of its own methods whenever value of BankAccount.Name changes
-            With this attribute, when the bank account changes this subscriptions will be properly unsubscribed from the old and resubscribed to the new.
-            <br></br><br></br>
-            NOTE: When putting this on a property in a class, you must also hook it up to fody. To do this add this line, which will get magically called by fody:
-            <code>
-            public void OnPropertyChanged(string propertyName, object before, object after) => ForwardEventsAttribute.DoForwarding(this, propertyName, before, after);
-            </code>
+            <see cref="T:Eco.Core.Controller.Generators.AotCodeGen"/> generates dummy calls to generic methods to ensure these methods will be available after AOT via reflection.
+            AOT (ahead of time compilation) used on client side for IL2CPP build. AOT only compiles methods which may be discovered during compilation,
+            but if some method only called via reflection then in runtime it won't be available and an exception will be thrown instead.
+            To avoid the issue we need to hint AOT code gen with all possible generic method variants - for that we generate fake method calls
+            based on <see cref="F:Eco.Core.Controller.Generators.AotCodeGen.toBsonTypes"/> and <see cref="F:Eco.Core.Controller.Generators.AotCodeGen.fromBsonTypes"/> which may be used during BSON serialization/deserialization.
             </summary>
         </member>
-        <member name="M:Eco.Core.Controller.ForwardingUtils.DoForwarding(System.Object,System.String,System.Object,System.Object)">
-            <summary>Check if the passed property has a ForwardSubscriptions attribute, and perform the unsubscribe on the old property and
-            subscribe on the new one.</summary>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.AddToBsonType(System.Type)">
+            <summary>Adds type which will be used in ToBson methods (during serialization).</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ForwardingUtils.CleanupForwarding(System.Object)">
-            <summary>Remove all subscribtions created by <see cref="M:Eco.Core.Controller.ForwardingUtils.DoForwarding(System.Object,System.String,System.Object,System.Object)"/> method.</summary>
-            <remarks>
-            This method should be called by object using <see cref="T:Eco.Core.Controller.ForwardAttribute"/> when it's destoryed to make sure it can be garbage collected.
-            It is save to not call this method when all use cases of <see cref="T:Eco.Core.Controller.ForwardAttribute"/> in a class are one of the following cases:
-            <list type="bullet">
-            <item>
-            <see cref="T:Eco.Core.Controller.ForwardPropertyChangeAttribute"/> is used
-            </item>
-            <item>
-            <see cref="T:Eco.Core.Controller.ForwardEventAttribute"/> is used to forward event from an object that would be eligible for garbage collection if it wasn't referenced by object to which events are forwarded
-            </item>
-            </list>
-            </remarks>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.AddFromBsonType(System.Type)">
+            <summary>Adds type which will be used in FromBson methods (during deserialization).</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.GetEnumerableTypes(System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>Collects all types which implements <see cref="T:System.Collections.IEnumerable"/> interface with element type (if it may be determined).</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.CollectEnumerableTypes(System.Collections.Generic.IEnumerable{System.Type},System.Collections.Generic.HashSet{System.Type},System.Collections.Generic.HashSet{System.ValueTuple{System.Type,System.Type}})">
+            <summary>Collects list and dictionary types to be used in <see cref="M:Eco.Core.Controller.Generators.AotCodeGen.GenerateFromBsonHelper(System.Text.StringBuilder)"/> and <see cref="M:Eco.Core.Controller.Generators.AotCodeGen.GenerateToBsonHelper(System.Text.StringBuilder,System.Boolean)"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.GenerateFromBsonHelper(System.Text.StringBuilder)">
+            <summary>Generates FromBsonHelper having calls to all reflection invoked methods for AOT.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.GenerateToBsonHelper(System.Text.StringBuilder,System.Boolean)">
+            <summary>Generates ToBsonHelper having calls to all reflection invoked methods for AOT.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.Generators.AotCodeGen.Generate(System.Text.StringBuilder)">
+            <summary>Generates AotCodeGen content to <paramref name="template"/>.</summary>
         </member>
         <member name="T:Eco.Core.Controller.Generators.RPCMethodGenerationHelper">
             <summary><see cref="T:Eco.Shared.Networking.RPCMethod"/> generation helper for return type string and method signature.</summary>
@@ -396,11 +476,28 @@
         <member name="M:Eco.Core.Controller.Generators.TypeGenerationHelper.GenerateViewTypeName(System.Type,Eco.Core.Controller.ControllerMarshalerService)">
             <summary>Generates type name for view.</summary>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerExtensions.WatchProp(System.ComponentModel.INotifyPropertyChanged,System.ComponentModel.PropertyChangedEventHandler)">
-            <summary>Watch for a property changing through the fody system.</summary>
-        </member>
         <member name="M:Eco.Core.Controller.ControllerExtensions.WatchProp(System.ComponentModel.INotifyPropertyChanged,System.String,System.Action{System.Object})">
-            <summary>Watch for a property changing through the fody system.</summary>
+            <summary>Watch for a property changing through the fody system.
+            DEPRECATED. Use ChangeWatcher class.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.WatchProp(System.ComponentModel.INotifyPropertyChanged,System.ComponentModel.PropertyChangedEventHandler)">
+            <summary>Watch for a property changing through the fody system, using a passed handler.
+            DEPRECATED. Use ChangeWatcher class.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.WatchPropAndCall(System.ComponentModel.INotifyPropertyChanged,System.String,System.Action{System.Object})">
+            <summary>Watch for a property changing through the fody system. Also call it right now.
+            DEPRECATED. Use ChangeWatcher class.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.WatchPropsAndCall(System.ComponentModel.INotifyPropertyChanged,System.Action{System.Object},System.String[])">
+            <summary>Add a watch on all the given property names on this type, using a single handler. Call after subscribe too.
+            DEPRECATED. Use/extend ChangeWatcher class.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.WatchProps(System.ComponentModel.INotifyPropertyChanged,System.Action{System.Object},System.String[])">
+            <summary>Add a watch on all the given property names on this type, using a single handler.
+            DEPRECATED. Use ChangeWatcher class.</summary>
+        </member>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.UnwatchAll(System.Collections.Generic.IEnumerable{System.ComponentModel.PropertyChangedEventHandler},System.ComponentModel.INotifyPropertyChanged)">
+            <summary>Unsubsribe to all event handlers on the given property notifier.</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerExtensions.WatchPropertyOnAllEntries``1(System.Collections.Generic.IEnumerable{``0},Eco.Core.Utils.TrackingCallbacks,System.ComponentModel.PropertyChangedEventHandler)">
             <summary>Makes sure <paramref name="handler"/> is called whenever value of any property changes in any element of <paramref name="collection"/></summary>
@@ -410,8 +507,8 @@
             <summary>Makes sure <paramref name="onChange"/> is called whenever value of property with name <paramref name="propertyName"/> changes in any element of <paramref name="collection"/></summary>
             <param name="callbacks"><see cref="T:Eco.Core.Utils.TrackingCallbacks"/> for <paramref name="collection"/></param>
         </member>
-        <member name="M:Eco.Core.Controller.ControllerExtensions.Changed(Eco.Core.Controller.IController,System.String,Eco.Core.Plugins.Interfaces.ISaveablePlugin,System.String)">
-            <summary> For classes that have a 'Description' variable or other some such that should change whenever a child changes. </summary>
+        <member name="M:Eco.Core.Controller.ControllerExtensions.ChangedSafe(Eco.Core.Controller.IController,System.String)">
+            <summary>Alternative to <see cref="M:Eco.Core.Controller.ControllerExtensions.Changed(Eco.Core.Controller.IController,System.String)"/> with null check for property name. It should be removed when all places which may pass null as property name fixed,</summary>
         </member>
         <member name="M:Eco.Core.Controller.ControllerExtensions.SetProperty``1(Eco.Core.Controller.IController,``0@,``0,System.String)">
             <summary> Set a property if it's changed and notify it's changed. No need to set name if used in a propery. </summary>
@@ -459,9 +556,11 @@
         <member name="T:Eco.Core.Controller.ReadOnlyControllerAttribute">
             <summary> Marks when a controller is read-only, which prevents recursive subscriptions from delving into it.</summary>
         </member>
-        <member name="T:Eco.Core.Controller.DependsOnAttribute">
+        <member name="T:Eco.Core.Controller.DependsOnControllerAttribute">
             <summary> This attribute says that this view value depends on another's, so send that result as well
-            when it changes. Note that dependencies which are not 'synctoview' will not be found.</summary>
+            when it changes. Note that dependencies which are not 'synctoview' will not be found.
+            NOTE: There is another [DependeOn] attribute that is similar, but uses fody property change detection instead.
+            That one is faster, doing it when the change occurs, while this one will queue it up for a later change call.</summary>
         </member>
         <member name="T:Eco.Core.Controller.IControllerMarshaler">
             <summary>Base interface for all controller marshalers (enums, IController classes, primitive types).</summary>
@@ -525,6 +624,9 @@
         <member name="T:Eco.Core.Controller.SyncToViewAttribute">
             <summary> SyncToView denotes a property or method result as a value that exists in the view on the client. </summary>
         </member>
+        <member name="T:Eco.Core.Controller.ViewTypeAttribute">
+            <summary>Defines View Type which should be used on client side instead of that type. Should be used when server and client side have same BSON serialization format, but different classes on server side and on the client. That type won't be generated and should be manually created on the client.</summary>
+        </member>
         <member name="T:Eco.Core.Controller.WatchSubProperties">
             <summary>When a property is given this attribute, any changes to the sub-properties of that object will trigger the SubPropertyChanged call on the container class,
             which must implement IWatchesSubProperties.  This serves as an extension to Fody's 'OnPropertyChanged' functionality, allowing it to watch properties inside your properties.</summary>
@@ -534,7 +636,6 @@
         </member>
         <member name="T:Eco.Core.DebugStatistic.Collectors.EventMetricCollector">
             <summary>Base class for all <seealso cref="T:System.Diagnostics.Tracing.EventListener"/> based <seealso cref="T:Eco.Core.DebugStatistic.Collectors.IMetricCollector"/> instances.</summary>
-            <inheritdoc/>
         </member>
         <member name="F:Eco.Core.DebugStatistic.Collectors.EventMetricCollector.listenerKeyword">
             <summary>Integer keyword value used to initialize our <seealso cref="T:System.Diagnostics.Tracing.EventListener"/> instance.</summary>
@@ -560,7 +661,6 @@
         </member>
         <member name="T:Eco.Core.DebugStatistic.Collectors.GCMetricCollector">
             <summary>Implementation of <see cref="T:Eco.Core.DebugStatistic.Collectors.IMetricCollector"/> for collecting information and metrics about the .NET Garbage Collector.</summary>
-            <inheritdoc/>
         </member>
         <member name="M:Eco.Core.DebugStatistic.Collectors.GCMetricCollector.StoreTimedEventMetric(System.String,Eco.Core.DebugStatistic.Collectors.GCEventId,Eco.Core.DebugStatistic.Collectors.GCEventId,Eco.Core.DebugStatistic.Collectors.GCEventId)">
             <summary>Updates/Stores a timed metric value based on the event being triggered.</summary>
@@ -588,12 +688,8 @@
         <member name="T:Eco.Core.DebugStatistic.PerformanceIntervalStat">
             <summary>Custom interval stat counter used by <seealso cref="T:Eco.Core.DebugStatistic.PerformancePlugin"/> for generating reports.</summary>
         </member>
-        <member name="M:Eco.Core.DebugStatistic.PerformanceIntervalStat.ToString">
-            <inheritdoc/>
-        </member>
         <member name="T:Eco.Core.DebugStatistic.PerformancePlugin">
             <summary>Tracks potential performance problems in the server and generates a report.  Eventually we can make these reports output from the server and track them across builds.</summary>
-            <inheritdoc/>
         </member>
         <member name="F:Eco.Core.DebugStatistic.PerformancePlugin.IntervalTimes">
             <summary>Configured interval times used by the PerformancePlugin. These values must be multiples of each other.</summary>
@@ -646,6 +742,74 @@
             <summary>Returns a string that represnets this object. Used by the Eco server to properly localize the plugin instance.</summary>
             <returns>Returns a string that represnets this object. </returns>
         </member>
+        <member name="T:Eco.Core.DebugStatistic.RepeatedValueTracker">
+            <summary>
+            GlobalSubscribes to a provided list of types and analyzes notifications for these, 
+            tracking repeated notifications of the same Controller member with the same value as the last notification
+            <br>Use <see cref="P:Eco.Core.DebugStatistic.RepeatedValueTracker.RepeatCounts"/> to get current count of repetitions of each Type.Member</br>
+            <br>Only tracks Server-Client notifications, not Server sided communications (ControllerID == 0)</br>
+            </summary>
+        </member>
+        <member name="F:Eco.Core.DebugStatistic.RepeatedValueTracker.types">
+            <summary> Types being tracked for repeated notification analysis </summary>
+        </member>
+        <member name="F:Eco.Core.DebugStatistic.RepeatedValueTracker.previousSent">
+            <summary>ControllerID Member pair and its object from last notification </summary>
+        </member>
+        <member name="F:Eco.Core.DebugStatistic.RepeatedValueTracker.memberRepeatCount">
+            <summary>Track number of times a ControllerID Member pair repeats notifications for the same object </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.#ctor(System.Collections.Generic.IEnumerable{System.Type})">
+            <param name="types"> Types to analyze for repeated notifications </param>
+        </member>
+        <member name="P:Eco.Core.DebugStatistic.RepeatedValueTracker.RepeatCounts">
+            <summary> Sequence of pairs Type.Member and Number of repetitions </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.TryGetFieldOrProperty(System.Object,System.String,System.Object@,System.String@)">
+            <summary>
+            Get Property or Field of <paramref name="controller"/> with name <paramref name="memberName"/>.
+            <br>Returns true if found a Property or Field with name <paramref name="memberName"/> in <paramref name="controller"/></br>
+            <br>Outputs <paramref name="member"/> with value of found Property or Field or null if not found,
+            and <paramref name="memberDescription"/> describing the type: "Type.Member"</br>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AnalyzeNewNotification(Eco.Core.Controller.IController,System.String)">
+            <summary>
+            Analyze new notification of <paramref name="memberName"/> of <paramref name="controller"/>
+            and track if it has the same value as the last notification of the same <paramref name="memberName"/> 
+            and <paramref name="controller"/>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AddNotificationValueType(System.ValueTuple{System.Int32,System.String},System.String,System.Object)">
+            <summary> 
+            AddNotification(...) for Value type.
+            <br>Stores a copy of the value and compares with new value using Equals</br>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AddNotificationRefType(System.ValueTuple{System.Int32,System.String},System.String,System.Object)">
+            <summary> 
+            AddNotification(...) for reference type.
+            <br>Stores a WeakReference of the value and compares with new value to old WeakReference.Target</br>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AddNotificationValueEnumerable(System.ValueTuple{System.Int32,System.String},System.String,System.Object)">
+            <summary> 
+            AddNotification(...) for IEnumerable of value types.
+            <br>Stores a copy of the List of values and compares with new IEnumerable of values using SequenceEqual</br>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AddNotificationRefEnumerable(System.ValueTuple{System.Int32,System.String},System.String,System.Object)">
+            <summary> 
+            AddNotification(...) for IEnumerable of reference types.
+            <br>Stores a List of WeakReferences to the values and compares with new IEnumerable of values using SequenceEqual of WeakReference.Target</br>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.DebugStatistic.RepeatedValueTracker.AddNotification(System.ValueTuple{System.Int32,System.String},System.String,System.Object,System.Func{System.Object,System.Boolean})">
+            <summary> 
+            Add new <paramref name="notification"/> of <paramref name="tracked"/>. 
+            <br>If it's a repeated notification compare new and old <paramref name="tracked"/> object using <paramref name="equality"/></br>
+            </summary>
+        </member>
         <member name="T:Eco.Core.Ecopedia.EcopediaUtils">
             <summary> Ecopedia utils. </summary>
         </member>
@@ -660,30 +824,38 @@
             By default, ecopedia page displayed in a toolip is defined by a class itself.
             </summary>
         </member>
+        <member name="T:Eco.Core.ElasticSearch.ElasticConfiguration">
+            <summary>Global configuration details for the server's ElasticSearch usage.</summary>
+        </member>
+        <member name="P:Eco.Core.ElasticSearch.ElasticConfiguration.ElasticUrl">
+            <summary>Currently configured ElasticSearch url to read/write documents to. Defined by the SLG_ELASTIC_URL environment variable. Defaults to <see cref="F:System.String.Empty"/></summary>
+        </member>
+        <member name="P:Eco.Core.ElasticSearch.ElasticConfiguration.ElasticLogin">
+            <summary>Currently configured ElasticSearch login details. Should be username;password seperated by a semicolon. Defined by the SLG_ELASTIC_LOGIN environment variable. Defaults to <see cref="F:System.String.Empty"/></summary>
+        </member>
+        <member name="F:Eco.Core.ElasticSearch.ElasticConfiguration.DefaultElasticPrefix">
+            <summary>Default Elastic index/stream prefix used if SLG_ELASTIC_INDEX_PREFIX is not supplied.</summary>
+        </member>
+        <member name="P:Eco.Core.ElasticSearch.ElasticConfiguration.ElasticEnvironmentIndexPrefix">
+            <summary>Configured Elasticsearch index target. Used for changing environments inside ElasticSearch. Defined by the SLG_ELASTIC_INDEX_PREFIX environment variable. Defaults to the value of <see cref="F:Eco.Core.ElasticSearch.ElasticConfiguration.DefaultElasticPrefix"/> if not supplied.</summary>
+        </member>
+        <member name="M:Eco.Core.ElasticSearch.ElasticConfiguration.IsElasticEnabled">
+            <summary>Determines if ElasticSearch is currently enabled for this process by checking the state of <see cref="P:Eco.Core.ElasticSearch.ElasticConfiguration.ElasticUrl"/> and <see cref="P:Eco.Core.ElasticSearch.ElasticConfiguration.ElasticLogin"/>.</summary>
+            <returns>True if ElasticSearch should be used by this process.</returns>
+        </member>
+        <member name="M:Eco.Core.ElasticSearch.ElasticConfiguration.GetIndexName(System.String)">
+            <summary>Returns the full index named that should be used with our currently configured environment prefix based on a category string.</summary>
+            <param name="category">CAtegory name of the thing being stored in the index.</param>
+            <returns>The full Formatted index name.</returns>
+        </member>
         <member name="T:Eco.Core.ElasticSearch.ElasticDocument">
             <summary>Represents a storable document for use with ElasticSearch/Kibana.</summary>
         </member>
-        <member name="F:Eco.Core.ElasticSearch.ElasticDocument.Services">
-            <summary>
-            Provides metadata for linking our custom metrics to other data within ElasticSearch/Kibana
-            
-            Adds the following key/values:
-            service.version -> Current Eco server version
-            </summary>
+        <member name="P:Eco.Core.ElasticSearch.ElasticDocument.ServerVersion">
+            <summary>Provides the current Eco server version as metadata for filtering in ElasticSearch/Kibana.</summary>
         </member>
-        <member name="P:Eco.Core.ElasticSearch.ElasticDocument.Service">
-            <inheritdoc cref="F:Eco.Core.ElasticSearch.ElasticDocument.Services"/>
-        </member>
-        <member name="F:Eco.Core.ElasticSearch.ElasticDocument.Hosts">
-            <summary>
-            Provides metadata for linking our custom metrics by pod/machine within ElasticSearch/Kibana
-            
-            Adds teh following key/values:
-            host.hostname -> Current machine/pod hostname
-            </summary>
-        </member>
-        <member name="P:Eco.Core.ElasticSearch.ElasticDocument.Host">
-            <inheritdoc cref="F:Eco.Core.ElasticSearch.ElasticDocument.Hosts"/>
+        <member name="P:Eco.Core.ElasticSearch.ElasticDocument.Hostname">
+            <summary>Provides the current machine/pod hostname as metadata for filtering in ElasticSearch/Kibana.</summary>
         </member>
         <member name="P:Eco.Core.ElasticSearch.ElasticDocument.Timestamp">
             <summary>Represents the timestamp this document was sent. This is a required constant value.</summary>
@@ -706,20 +878,25 @@
             <list type="bullet">
             <item>SLG_ELASTIC_URL - ElasticSearch endpoint to attempt to connect to.</item>
             <item>SLG_ELASTIC_LOGIN - The username and password used to authenticate with the ElasticSearch instance. Must be in username:password format.</item>
-            <item>SLG_ELASTIC_INDEX_PREFIX - Prefix used to index documents with ElasticSearch. If this variable is not set the value defaults to "eco-cw".</item>
+            <item>SLG_ELASTIC_INDEX_PREFIX - Prefix used to index documents with ElasticSearch. If this variable is not set the value defaults to "eco".</item>
             </list>
             </para>
             </summary>
-            <inheritdoc/>
         </member>
         <member name="F:Eco.Core.ElasticSearch.ElasticSearchPlugin.FlushPeriodInMinutes">
             <summary>Defines the amount of time in minutes between each document flush to ElasticSearch</summary>
         </member>
         <member name="P:Eco.Core.ElasticSearch.ElasticSearchPlugin.ElasticClient">
-            <summary> Represents our ElasticSearch highlevel NEST client used by this plugin instance. This value will be NULL if the plugin was not properly configured.</summary>
+            <summary>Represents our ElasticSearch highlevel NEST client used by this plugin instance. This value will be NULL if the plugin was not properly configured.</summary>
         </member>
         <member name="P:Eco.Core.ElasticSearch.ElasticSearchPlugin.IsConfigured">
-            <summary> Represents the ElasticSearch plugin's current configured state. If the value is true the plugin is configured and running </summary>
+            <summary>Represents the ElasticSearch plugin's current configured state. If the value is true the plugin is configured and running </summary>
+        </member>
+        <member name="F:Eco.Core.ElasticSearch.ElasticSearchPlugin.status">
+            <summary>Represents the plugin's current status message.</summary>
+        </member>
+        <member name="F:Eco.Core.ElasticSearch.ElasticSearchPlugin.elasticIndexName">
+            <summary>Represents the Elastic index to publish to</summary>
         </member>
         <member name="M:Eco.Core.ElasticSearch.ElasticSearchPlugin.GetStatus">
             <summary>Returns the current plugin's operating status.</summary>
@@ -808,6 +985,82 @@
         <member name="M:Eco.Core.Utils.Async.AsyncEnumerableExtensions.ToList``1(System.Collections.Generic.IAsyncEnumerable{``0})">
             <summary> Resolves <see cref="T:System.Collections.Generic.IAsyncEnumerable`1"/> to <see cref="T:System.Collections.Generic.List`1"/>. </summary>
         </member>
+        <member name="T:Eco.Core.Utils.Async.AsyncEvents`1">
+             <summary>
+             Helper class for working with C# events as async stream of event values. It works as a bridge between event-based APIs and async/await based APIs.
+             
+             For example we have NAT device discovery library with <c>StartDiscovery</c>, <c>StopDiscovery</c> methods and a <c>DeviceDiscovered</c> event and then
+             we need to discover an appropriate NAT device in async method. NAT Device itself has async methods which we need to use to check if the device is an appropriate.
+             An application may be adapted to event based API, but in case if your existing code is already uses async/await pattern or you just prefer to use async/await code
+             for better readability and less errors then you can use <see cref="T:Eco.Core.Utils.Async.AsyncEvents`1"/>.
+            
+             Classic approach with events may look like:
+             <example><code><![CDATA[
+             class NATDeviceDiscoverer
+             {
+                 Task<bool> discoveryInProgress;
+                
+                 public event Action<NATDevice> AppropriateDeviceDiscovered;
+            
+                 void DiscoverAppropriateDevice()
+                 {
+                     NATLib.DeviceDiscovered += OnDeviceDiscovered;
+                     NATLib.StartDiscovery();
+                 }
+            
+                 void OnDeviceDiscovered(object subject, NATDeviceDiscoveredArgs args)
+                 {
+                     var device = args.Device;
+                     if (discoveryInProgress != null)
+                        discoveryInProgress.ContinueWith(t => t.IsCompleted && !t.Result ? CheckDevice(device) : Task.CompletedTask); // don't need to check if already found appropriate device
+                     else
+                        discoveryInProgress = CheckDevice(device);
+                 }
+            
+                 async Task<bool> CheckDevice(NATDevice device)
+                 {
+                     var isAppropriate = await device.Check();
+                     if (!isAppropriate) return false;
+                     NATLib.DeviceDiscovered -= OnDeviceDiscovered;  
+                     NATLib.StopDiscovery();
+                     AppropriateDeviceDiscovered.Invoke(device);
+                     return isAppropriate;
+                 }
+             }
+             ]]></code></example>
+             and if you need to add a timeout it become even more complex.
+            
+             With <see cref="T:Eco.Core.Utils.Async.AsyncEvents`1"/> you can rewrite it much simpler:
+             <example><code><![CDATA[
+             class NATDeviceDiscoverer
+             {
+                 async Task<NATDevice> DiscoverAppropriateDevice()
+                 {
+                     using var discoveredDevices = AsyncEvents<NATDevice>.Subscribe<Action<NATDevice>>(discoverNext => (_, args) => discoverNext(args.Device), handler => NATLib.DeviceDiscovered += handler, handler => NATLib.DeviceDiscovered -= handler);
+                     NATLib.StartDiscovery();
+                     try
+                     {
+                         await foreach (var device in discoveredDevices)
+                         {
+                             if (await device.Check())
+                                return device;
+                         }
+                     }
+                     finally
+                     { 
+                        NATLib.StopDiscovery();
+                     }
+                 }
+             }
+             ]]></code></example>
+             </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Async.AsyncEvents`1.Subscribe``1(System.Func{System.Func{`0,System.Boolean},``0},System.Action{``0},System.Action{``0})">
+            <summary>Subscribes to events of type <typeparamref name="TEventHandler"/>. <paramref name="handlerFactory"/> should create an event handler which invokes callback with an item received from event.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Async.AsyncEvents`1.GetAsyncEnumerator(System.Threading.CancellationToken)">
+            <summary>Returns <see cref="T:System.Collections.Generic.IAsyncEnumerator`1"/> which returns all items received from events as infinite async stream.</summary>
+        </member>
         <member name="T:Eco.Core.Utils.Async.AsyncFactory">
             <summary>
             AsyncFactory creates Task from different async objects.
@@ -839,8 +1092,37 @@
         <member name="M:Eco.Core.Utils.Async.TaskUtils.EnsureComplete``1(System.Threading.Tasks.Task{``0})">
             <summary> Excepts if the task is unfinished, and returns the result otherwise. </summary>
         </member>
+        <member name="M:Eco.Core.Utils.Async.TaskUtils.WithExceptionLog(System.Threading.Tasks.Task,System.String)">
+            <summary>Ensures that if <paramref name="task"/> fails with exception then the exception will be recorded in log.</summary>
+            <remarks>Usually you should avoid to run detached tasks (like `async void Something()`), but if for some reason that necessary then instead make two methods: `void Something() => SomethingAsync().WithExceptionLog("category");` and convert former to proper async method with Task result `async Task SomethingAsync()`.
+            Implemented that way you will be able to use both async version where it supported and at least have exception logging for detached async methods (which will silently fail otherwise).</remarks>
+        </member>
         <member name="M:Eco.Core.Utils.Async.TaskUtils.RunWithExceptionLog(System.String,System.Action)">
             <summary> Runs <paramref name="action"/> in background with <see cref="M:System.Threading.Tasks.Task.Run(System.Action)"/>, but wraps call in try-catch for exception logging. </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Async.TaskUtils.RecordTaskException(System.Exception,System.String)">
+            <summary>Records Task exception from <see cref="M:Eco.Core.Utils.Async.TaskUtils.WithExceptionLog(System.Threading.Tasks.Task,System.String)"/> or from <see cref="M:Eco.Core.Utils.Async.TaskUtils.RunWithExceptionLog(System.String,System.Action)"/>.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.CodeGen.DelegateUtils">
+            <summary></summary>
+        </member>
+        <member name="M:Eco.Core.Utils.CodeGen.DelegateUtils.CreateMethodDelegateFactory``1(System.Reflection.MethodInfo)">
+            <summary>
+            Creates delegate factory for <paramref name="methodInfo"/> allowing fast delegate creation bounded to an instance.
+            It generates and returns compiled <see cref="T:System.Reflection.Emit.DynamicMethod"/> as:
+            <code>
+            public TDelegate MethodDelegateFactory(object obj) => obj.Method;
+            </code>
+            Performance of such generated method is about same as if write a same statically compiled method.
+            Alternative approach with <c>(TDelegate)Delegate.CreateDelegate(typeof(TDelegate), obj, methodInfo)</c> is ~24 times slower (6.7728ns vs 161.0455ns).
+            May be used when you need to create a delegate with same method, but a different instance.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.CodeGen.DelegateUtils.CreateMethodDelegateFactory(System.Reflection.MethodInfo)">
+            <summary>Same as <see cref="M:Eco.Core.Utils.CodeGen.DelegateUtils.CreateMethodDelegateFactory``1(System.Reflection.MethodInfo)"/>, but returns untyped delegate.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.CodeGen.DelegateUtils.CreateMethodDelegateFactoryForGenericTypeDefinition(System.Reflection.MethodInfo)">
+            <summary>Special version of method delegate factory for generic type definition. Maintains internal cache of types constructed from that definition and makes constructed type factory on demand.</summary>
         </member>
         <member name="M:Eco.Core.Utils.ConcurrentExtensions.Consume``1(System.Collections.Concurrent.IProducerConsumerCollection{``0},System.Int32)">
             <summary>
@@ -898,6 +1180,12 @@
             <param name="apply">A function run on every entry of the container, which will return a tuple: (the new updated container, the value to pass back to the caller)</param>
             <returns>Returns the result of the application of the func over the container.</returns>
         </member>
+        <member name="M:Eco.Core.Utils.TrackingCallbacks.SubscribeAddRemove(System.Action{Eco.Shared.Networking.INetObject,System.Object})">
+            <summary>Subscribe to <see cref="P:Eco.Core.Utils.TrackingCallbacks.OnAdd"/> and <see cref="P:Eco.Core.Utils.TrackingCallbacks.OnRemove"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.TrackingCallbacks.UnsubscribeAddRemove(System.Action{Eco.Shared.Networking.INetObject,System.Object})">
+            <summary>Unsubscribe to <see cref="P:Eco.Core.Utils.TrackingCallbacks.OnAdd"/> and <see cref="P:Eco.Core.Utils.TrackingCallbacks.OnRemove"/>.</summary>
+        </member>
         <member name="M:Eco.Core.Utils.ClientControllerExtensions.Remove(Eco.Core.Utils.IClientControlledContainer,Eco.Shared.Networking.INetObject,System.Object,System.Reflection.PropertyInfo)">
             <summary>An extension that allows ClientControlledContainers to be told to delete stuff by the client.</summary>
         </member>
@@ -938,6 +1226,28 @@
         </member>
         <member name="T:Eco.Core.Utils.Logging.ConsoleLogWriter">
             <summary>Implementation of <see cref="T:Eco.Shared.Utils.ILogWriter"/> to show log messages in console.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.Logging.EcoMicrosoftLogger">
+            <summary><see cref="T:Microsoft.Extensions.Logging.ILogger"/> implementation for passing through ILogger based messages to Eco's built in logging system.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.Logging.EcoMicrosoftLoggerConfiguration">
+            <summary>Configuration object for <see cref="T:Eco.Core.Utils.Logging.EcoMicrosoftLogger"/>. It is currently unused however required to exist for the ILogger implementation.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.Logging.EcoMicrosoftLoggerExtensions">
+            <summary>Extensions for <see cref="T:Microsoft.Extensions.Logging.ILoggingBuilder"/></summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Logging.EcoMicrosoftLoggerExtensions.AddEcoMicrosoftLogger(Microsoft.Extensions.Logging.ILoggingBuilder)">
+            <summary>Registers the <see cref="T:Eco.Core.Utils.Logging.EcoMicrosoftLogger"/> <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance with the <see cref="T:Microsoft.Extensions.Logging.ILoggingBuilder"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Logging.EcoMicrosoftLoggerExtensions.AddEcoMicrosoftLogger(Microsoft.Extensions.Logging.ILoggingBuilder,System.Action{Eco.Core.Utils.Logging.EcoMicrosoftLoggerConfiguration})">
+            <inheritdoc cref="M:Eco.Core.Utils.Logging.EcoMicrosoftLoggerExtensions.AddEcoMicrosoftLogger(Microsoft.Extensions.Logging.ILoggingBuilder)"/>
+            <param name="configure"><see cref="T:Eco.Core.Utils.Logging.EcoMicrosoftLoggerConfiguration"/> configuration to use for this logger instance.</param>
+        </member>
+        <member name="T:Eco.Core.Utils.Logging.EcoMicrosoftLoggerProvider">
+            <summary><see cref="T:Microsoft.Extensions.Logging.ILoggerProvider"/> implementation for registering and using the <see cref="T:Eco.Core.Utils.Logging.EcoMicrosoftLogger"/> object.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Logging.EcoMicrosoftLoggerProvider.Dispose(System.Boolean)">
+            <inheritdoc cref="M:System.IDisposable.Dispose"/>
         </member>
         <member name="T:Eco.Core.Utils.Logging.LogFileManager">
             <summary>Utility log manager for accessing information about logs stored in a directory.</summary>
@@ -1023,6 +1333,24 @@
         <member name="M:Eco.Core.Utils.OptimizedActivator.ConvertDelegateParam(System.Linq.Expressions.ParameterExpression,System.Type)">
             <summary>Creates expression which converts <paramref name="delegateParam"/> to <paramref name="targetType"/>. There special case for <see cref="T:System.Collections.IEnumerable"/> when cast to <see cref="T:System.Collections.Generic.IEnumerable`1"/> </summary>
         </member>
+        <member name="T:Eco.Core.Utils.RelativePriorityAttribute">
+            <summary>Base class for attributes that define priority relatively.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.PriorityAfterAttribute">
+            <summary>Allows defining priority based on another type's priority. IE, you can say 'this type should be higher priority value than that type'.</summary>
+        </member>
+        <member name="T:Eco.Core.Utils.PriorityBeforeAttribute">
+            <summary>Allows defining prirority based on another type's priority. IE, you can say 'this type should be lower priority value than that type'.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.PriorityExtensions.OrderByPriority``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>Order a list of objects by their type's priority, calculating relative priorities as needed.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ProcessorUtils.GetAvailableProcessorCount">
+            <summary>Returns number of available processors. Uses processor affinity if platform supports it (windows or linux) or <see cref="P:System.Environment.ProcessorCount"/> otherwise.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ProcessorUtils.GetAvailableProcessorCountUsingProcessorAffinity">
+            <summary>Returns number of available cores using processor affinity (basically number of set bits).</summary>
+        </member>
         <member name="T:Eco.Core.Utils.PropertyScanning.BulkContextObject">
             <summary>
             Context object with cache, which could be used for example for bulk query data for all users instead of doing query per user. 
@@ -1101,6 +1429,23 @@
         </member>
         <member name="M:Eco.Core.Utils.Threading.ActionUtils.AsAsyncCancellableAction(System.Action)">
             <summary> Represents <see cref="T:System.Action"/> as async cancellable action with immediate execution (invokes the <paramref name="action"/> and returns <see cref="P:System.Threading.Tasks.Task.CompletedTask"/>). </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.Threading.ActionUtils.TryInvokeAll``1(System.Collections.Generic.IEnumerable{System.Action{``0}},``0,System.Collections.Generic.List{System.Exception}@)">
+            <summary>Try to invoke actions passing parameter to each of them. Return true if they all succeed and false if any of them fails with an exception.</summary>
+            <param name="exceptions">Exceptions thrown by actions. Null if none were thrown.</param>
+        </member>
+        <member name="M:Eco.Core.Utils.Threading.ActionUtils.TryInvokeAll``2(System.Collections.Generic.IEnumerable{``0},``1,System.Action{``0,``1},System.Collections.Generic.List{System.Exception}@)">
+            <summary>Try to invoke actions by passing them along with parameter to invoke function. Return true if they all succeed and false if any of them fails with an exception.</summary>
+            <param name="exceptions">Exceptions thrown by actions. Null if none were thrown.</param>
+            <param name="invoke">Function that will be called to invoke each action.</param>
+        </member>
+        <member name="M:Eco.Core.Utils.Threading.ActionUtils.TryInvoke``1(System.Action{``0},``0,System.Exception@)">
+            <summary>Try to invoke action. Return true if it succeeds and false if it fails with an exception.</summary>
+            <param name="exception">Exception thrown by action. Null if no exception is thrown.</param>
+        </member>
+        <member name="M:Eco.Core.Utils.Threading.ActionUtils.TryInvoke``2(System.Action{``0,``1},``0,``1,System.Exception@)">
+            <summary>Try to invoke action. Return true if it succeeds and false if it fails with an exception.</summary>
+            <param name="exception">Exception thrown by action. Null if no exception is thrown.</param>
         </member>
         <member name="T:Eco.Core.Utils.Threading.ActionWorker">
             <summary> Wraps asynchronous action to <see cref="T:Eco.Core.Utils.Threading.IWorker"/> interface. </summary>
@@ -1228,11 +1573,25 @@
         <member name="M:Eco.Core.Utils.ThreadSafeBidirectionalMap`2.GetOrAdd(`0,`1)">
             <summary>Thread-safe implementation of GetOrAdd pattern.</summary>
         </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeDictionary`2.TryUpdate(`0,`1,`1)">
+            <summary>Sets the specified key to <paramref name="newValue"/> if the specified key already is set to <paramref name="comparisonValue"/>.</summary>
+            <returns>True if update succeeds.</returns>
+        </member>
         <member name="M:Eco.Core.Utils.ThreadSafeDictionary`2.Remove(System.Collections.Generic.KeyValuePair{`0,`1})">
             <summary>Removes <paramref name="item"/> from dictionary if it matches both key and value of <paramref name="item"/>.</summary>
         </member>
         <member name="M:Eco.Core.Utils.ThreadSafeHashSet`1.RemoveAll(System.Func{`0,System.Boolean})">
             <summary> Removes all items matching <paramref name="match"/> predicate and returns count of removed items. </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeHashSet`1.RemoveAllAndReturn(System.Func{`0,System.Boolean})">
+            <summary>Remove from the hashset any entries passing the given match test, and return them.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeHashSet`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Remove all items contained in <paramref name="range"/> if they are present in the hash set.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeHashSet`1.RemoveRangeAndReturn(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Remove all items contained in <paramref name="range"/> if they are present in the hash set.</summary>
+            <returns>Items that were removed.</returns>
         </member>
         <member name="T:Eco.Core.Utils.ThreadSafeLimitedHistory`1">
             <summary>
@@ -1296,6 +1655,30 @@
             Gets current list read-only snapshot. May be used to get consistent result between different access calls.
             </summary>
         </member>
+        <member name="T:Eco.Core.Utils.ThreadSafeLRUCache`2">
+            <summary>Thread safe version of <see cref="T:Eco.Shared.Collections.LRUCache`2"/>.</summary>
+            <remarks>This is a very simple implementation based on a lock that synchronizes all access to the internal cache.</remarks>
+        </member>
+        <member name="P:Eco.Core.Utils.ThreadSafeLRUCache`2.Count">
+            <summary>Number of cached items.</summary>
+        </member>
+        <member name="P:Eco.Core.Utils.ThreadSafeLRUCache`2.Keys">
+            <summary>List of all keys used to store items in this cache.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeLRUCache`2.TryGetValue(`0,`1@)">
+            <summary>Tries to get cached <paramref name="value"/> by the <paramref name="key"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeLRUCache`2.AddOrUpdate(`0,`1)">
+            <summary>Adds or updates cached <paramref name="value"/> by the <paramref name="key"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeLRUCache`2.Clear">
+            <summary>Clears the cache.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.ThreadSafeLRUCache`2.GetMatchingEntries(System.Func{`0,System.Boolean},System.Func{`1,System.Boolean})">
+            <summary>Finds all entries where key and value match specified criteria.</summary>
+            <param name="keyMatch">Function that receives key and returns true if it matches the search criteria.</param>
+            <param name="valueMatch">Function that receives value and returns true if it matches the search criteria.</param>
+        </member>
         <member name="T:Eco.Core.Utils.ThreadSafeQueue`1">
             <summary>
             Only use this collection when absolutely necessary when you can't use <see cref="T:System.Collections.Concurrent.ConcurrentQueue`1"/> instead.
@@ -1310,6 +1693,12 @@
         </member>
         <member name="M:Eco.Core.Utils.TimedTask.ReportProgress(System.String)">
             <summary> Write the progress to the console, needs to be called inside ConsoleSynchronizationContext. </summary>
+        </member>
+        <member name="M:Eco.Core.Utils.TypeUtils.GetEcoTypesInfo">
+            <summary>Collect all type Infos in assemblies with Eco namespace.</summary>
+        </member>
+        <member name="M:Eco.Core.Utils.TypeUtils.GetEcoTypes">
+            <summary>Collect all types in assemblies with Eco namespace.</summary>
         </member>
         <member name="T:Eco.Core.Utils.IContainsDynamicFlags">
             <summary> Properties with [DynamicFlags] attribute will result client side's selector to try to look for this container in their parent.
@@ -1408,6 +1797,9 @@
         <member name="M:Eco.Core.Plugins.Interfaces.IServerPlugin.GetStatus">
             <summary>Returns the current status string for displaying in the Server's console.</summary>
         </member>
+        <member name="M:Eco.Core.Plugins.Interfaces.IServerPlugin.GetCategory">
+            <summary>Returns the category string associated with this plugin. Used in Server UI sorting.</summary>
+        </member>
         <member name="M:Eco.Core.Plugins.Interfaces.IPluginManager.FireShutdown(System.Int32)">
             <summary>
             Initiates shutdown procedure, but doesn't wait until it complete. It doesn't terminate code execution and so instruction after this call will be executed as usual.
@@ -1454,26 +1846,286 @@
         <member name="T:Eco.Core.Plugins.PluginTickTimer`1">
             <summary>Typedef variant of the <seealso cref="T:Eco.Core.Plugins.PluginTickTimer"/> class for monitoring and collecting tick averages.</summary>
             <typeparam name="T">Plugin type to monitor</typeparam>
-            <inheritdoc/>
         </member>
         <member name="T:Eco.Core.Plugins.PluginTickTimer">
             <summary>Generic tick timer for collecting and storing average tick metrics.</summary>
-            <inheritdoc/>
         </member>
         <member name="M:Eco.Core.Plugins.StorageManager.LoadSaveAsync(System.Boolean)">
             <summary>Loads save from <see cref="P:Eco.Core.Plugins.StorageManager.SaveName"/>. If flag <paramref name="restoreBackupIfSaveMissing"/> is set then it will use backup for the <see cref="P:Eco.Core.Plugins.StorageManager.SaveName"/> if no save file exists.</summary>
         </member>
+        <member name="M:Eco.Core.Plugins.StorageManager.UnlockPersistAsync">
+            <summary>Unlocks storage for writing and persists everything.</summary>
+        </member>
         <member name="M:Eco.Core.Plugins.StorageManager.PersistAsync">
             <summary> Persists all pending storages asynchronously. </summary>
+        </member>
+        <member name="M:Eco.Core.Plugins.StorageManager.LoadAndRemove``1(System.String,System.Action{``0,System.String})">
+            <summary>Loads object and removes entries from <see cref="F:Eco.Core.Plugins.StorageManager.dataStore"/>. May be used during conversion pass from old zip entries to new zip entries.</summary>
         </member>
         <member name="M:Eco.Core.Plugins.StorageManager.InitializeAsync(System.Boolean)">
             <summary>Initializes <see cref="T:Eco.Core.Plugins.StorageManager"/>. May optionally disable backups if <paramref name="enableBackups"/> set to <c>false</c>.</summary>
         </member>
-        <member name="T:Eco.Core.LocalizationAssemblyParser">
-            Extract server assembly localization strings. From Attributes:
-            <see cref="T:Eco.Shared.Networking.EcoAttribute"/>
-            <see cref="T:Eco.Shared.Localization.LocalizedAttribute"/>
-            <see cref="F:Eco.Core.LocalizationAssemblyParser.chatCommandAttrType"/>
+        <member name="T:Eco.Core.Plugins.TickSamples.TotalTimeTickSample">
+            <summary> Tick Sampler to use for tick analysis. </summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Watch(Eco.Shared.View.ISubscriptions,System.Object,System.String,System.Action)">
+            <summary>Watches a property/method/event called 'memberName' on object 'watch', using best method to do so..
+            Maintains subscription on 'subs', though null can be passed in which case the subscription isnt tracked.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Unwatch(Eco.Shared.View.ISubscriptions,System.Object,System.String,System.Action)">
+            <summary>Finds the subscriptions using the given callback and removes it for the given watch</summary>
+            <param name="subs"></param>
+            <param name="watch"></param>
+            <param name="memberName"></param>
+            <param name="onChanged"></param>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.WatchAllProps(Eco.Shared.View.ISubscriptions,System.ComponentModel.INotifyPropertyChanged,System.Action)">
+            <summary>Watches for any property change (as triggered by fody, not by controller system.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.WatchNoSub(System.Object,System.String,System.Action)">
+            <summary>Watch a property/method/event called 'memberName' on a given object, without tracking the subscription (useful when watching your own properties where
+            the watcher and the property always destroy at the same time so no sub needed).</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Watch(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction,System.Action)">
+            THREADSAFEACTION subscriptions.
+            Pack of ThreadSafeAction watch/unwatch (rolled out so we can use mulitple params)
+            <summary>Subscribe to a regular action and track it.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Watch``1(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction{``0},System.Action{``0})">
+            <summary>Subscribe to a regular action and track it.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Watch``2(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction{``0,``1},System.Action{``0,``1})">
+            <summary>Subscribe to a regular action and track it.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Unwatch(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction,System.Action)">
+            <summary>Unsubscribe, using the target and callback as handles.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Unwatch``1(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction{``0},System.Action{``0})">
+            <summary>Unsubscribe, using the target and callback as handles.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.Unwatch``2(Eco.Shared.View.ISubscriptions,Eco.Core.Utils.ThreadSafeAction{``0,``1},System.Action{``0,``1})">
+            <summary>Unsubscribe, using the target and callback as handles.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.WatchMemberOfMember(Eco.Shared.View.ISubscriptions,System.Object,System.String,System.String,System.Action)">
+            <summary>Here we do a nested watch: we watch for a given property *on* an instance specified by another property.
+            For example, settlement may want to watch when Settlement.Leader.MarkedupName changes.  This requires a nested watch,
+            as it must trigger both 
+              1) when Leader changes or 
+              2) when Leader.MarkedupName changes.  
+            It also handles the weak-reference subscription and unsubscrition of all parts involved.
+            Note: unlike WatchMember, 'subs' must be non-null, because tracking member-of-member subscriptions is always necessary</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.WatchAllMembersOfMember(Eco.Shared.View.ISubscriptions,System.Object,System.String,System.Action)">
+            <summary>Watches for when a given member changes, and maintains a subscription to *every* property on that instance, removing old subscriptions.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.IsPropFodyNotifiable(System.ComponentModel.INotifyPropertyChanged,System.String)">
+            <summary>See if a given property name on this type will be getting updates from fody</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.PropertyChangedSubscription.#ctor(System.ComponentModel.INotifyPropertyChanged,System.String,System.Action)">
+            <summary>Watch for a specific named property changing by subscribing to the event raised by fody.</summary>
+        </member>
+        <member name="M:Eco.Core.Properties.ChangeWatcher.PropertyChangedSubscription.#ctor(System.ComponentModel.INotifyPropertyChanged,System.Action)">
+            <summary>Watch for ANY property changing, as raised by fody.</summary>
+        </member>
+        <member name="T:Eco.Core.Properties.ThreadSafeActionSubscription">
+            <summary> A threadsafe action subscription. Stores the target and callback so it can be found be those too</summary>
+        </member>
+        <member name="T:Eco.Core.Properties.ThreadSafeActionSubscription`1">
+            <summary> A threadsafe action subscription. Stores the target and callback so it can be found be those too</summary>
+        </member>
+        <member name="T:Eco.Core.Properties.ThreadSafeActionSubscription`2">
+            <summary> A threadsafe action subscription. Stores the target and callback so it can be found be those too</summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.ForwardAttribute">
+            <summary>Base class for attributes allowing forwarding of some actions from a property to a class containing that property.</summary>
+        </member>
+        <member name="F:Eco.Core.PropertyHandling.ForwardAttribute.PropertyMember">
+            <summary>The name of the member on the property we're marking</summary>
+        </member>
+        <member name="F:Eco.Core.PropertyHandling.ForwardAttribute.ThisMethod">
+            <summary>The name of the method on 'this' that we want to call</summary>
+        </member>
+        <member name="F:Eco.Core.PropertyHandling.ForwardAttribute.SpecifiedTypeToForward">
+            <summary>
+            Set this type when you're referencing a property that's only on some of the types that can be assigned (overriding some safety checks).
+            This is useful for example if the property is an interface or a class that have multiple children and you only want to forward it when a value of a specific type was referenced.
+            Ie. ElectedTitle has a property of type IAlias called EligibleCandidates (it can accept values of type User, ElectedTitle,...) but we only want to forward the property if the referenced value
+            implement the IProposable interface and ignore all other values. To achieve that we just referenced the IProposable type in the attribute params.
+            </summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.ForwardEventAttribute">
+            <summary>
+            Allows a class to forward events on a property to its own methods, updating the subscriptions when the property changes.
+            <br></br><br></br>
+            IE, CreditComponent has a property containing a BankAccount and it uses this attribute to call one of its own methods whenever BalanceChanged event is raised.
+            With this attribute, when the bank account changes this subscription will be properly unsubscribed from the old and resubscribed to the new.
+            <br></br><br></br>
+            NOTE: Event forwarding works via <see cref="T:Eco.Core.PropertyHandling.PropertyChanges"/> and will be triggered when <see cref="M:Eco.Core.PropertyHandling.PropertyChanges.FireGlobalPropertyChanged(System.Object,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs)"/> called for the property.
+            You can use PropertyChanged.Fody magic with <c>PropertyChangedNotificationInterceptor</c> like in Eco.Gameplay or manually call that method.
+            Either way declaring class should implement <see cref="T:System.ComponentModel.INotifyPropertyChanged"/> and <see cref="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker"/> (usually auto-implemented by Fody).
+            </summary>
+            <remarks>
+            See <see cref="M:Eco.Core.PropertyHandling.ForwardingUtils.CleanupForwarding(System.ComponentModel.INotifyPropertyChanged)"/> before use.
+            </remarks>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.ForwardPropertyChangeAttribute">
+            <summary>
+            Allows a class to forward property changed callbacks from its property to its own methods, updating the subscriptions when the property changes.
+            This attribute can only be applied to a property of type that implements <see cref="T:Eco.Core.Controller.IController"/> interface.
+            <br></br><br></br>
+            IE, CreditComponent has a property containing a BankAccount and it uses this attribute to call one of its own methods whenever value of BankAccount.Name changes
+            With this attribute, when the bank account changes this subscriptions will be properly unsubscribed from the old and resubscribed to the new.
+            <br></br><br></br>
+            NOTE: Property change forwarding works via <see cref="T:Eco.Core.PropertyHandling.PropertyChanges"/> and will be triggered when <see cref="M:Eco.Core.PropertyHandling.PropertyChanges.FireGlobalPropertyChanged(System.Object,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs)"/> called for the property.
+            You can use PropertyChanged.Fody magic with <c>PropertyChangedNotificationInterceptor</c> like in Eco.Gameplay or manually call that method.
+            Either way declaring class should implement <see cref="T:System.ComponentModel.INotifyPropertyChanged"/> and <see cref="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker"/> (usually auto-implemented by Fody).
+            </summary>
+            <remarks>
+            See <see cref="M:Eco.Core.PropertyHandling.ForwardingUtils.CleanupForwarding(System.ComponentModel.INotifyPropertyChanged)"/> before use.
+            </remarks>
+        </member>
+        <member name="F:Eco.Core.PropertyHandling.ForwardingUtils.AllInstanceMembersBindingFlags">
+            <summary>Binding flags for getting all instance members (public, private and inherited)</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.ForwardingUtils.RegisterForwardingHandlers">
+            <summary>Adds global subscriptions for all types inherited from <see cref="T:System.ComponentModel.INotifyPropertyChanged"/> and having properties with <see cref="T:Eco.Core.PropertyHandling.ForwardAttribute"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.ForwardingUtils.RegisterForwardingHandler(System.Type,System.Reflection.PropertyInfo,Eco.Core.PropertyHandling.ForwardAttribute)">
+            <summary>Registers global property subscription for <paramref name="forwardAttribute"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.ForwardingUtils.CleanupForwarding(System.ComponentModel.INotifyPropertyChanged)">
+            <summary>Remove all subscriptions created by <see cref="M:Eco.Core.PropertyHandling.ForwardingUtils.RegisterForwardingHandlers"/> method.</summary>
+            <remarks>
+            This method should be called by object using <see cref="T:Eco.Core.PropertyHandling.ForwardAttribute"/> when it's destroyed to make sure it can be garbage collected.
+            It is save to not call this method when all use cases of <see cref="T:Eco.Core.PropertyHandling.ForwardAttribute"/> in a class are one of the following cases:
+            <list type="bullet">
+            <item>
+            <see cref="T:Eco.Core.PropertyHandling.ForwardPropertyChangeAttribute"/> is used
+            </item>
+            <item>
+            <see cref="T:Eco.Core.PropertyHandling.ForwardEventAttribute"/> is used to forward event from an object that would be eligible for garbage collection if it wasn't referenced by object to which events are forwarded
+            </item>
+            </list>
+            </remarks>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.GenericTypeSubscriptions">
+            <summary>Internal class used by <see cref="T:Eco.Core.PropertyHandling.PropertyChanges"/> for global subscriptions (per-property and all-properties) for generic types. Has reference to generic type definition subscriptions.</summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker">
+            <summary>Interface for external invocation of <see cref="E:System.ComponentModel.INotifyPropertyChanged.PropertyChanged"/> event.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)">
+            <summary>Invokes <see cref="E:System.ComponentModel.INotifyPropertyChanged.PropertyChanged"/> event handlers.</summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs">
+            <summary><see cref="T:System.ComponentModel.PropertyChangedEventArgs"/> extended with <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.Before"/> and <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.After"/> values. Both <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.Before"/> and <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.After"/> will be null if not available.</summary>
+        </member>
+        <member name="P:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.HasBeforeAfter">
+            <summary>Checks if <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.Before"/> and <see cref="F:Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs.After"/> values available.</summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.PropertyChanges">
+            <summary>
+            <see cref="T:Eco.Core.PropertyHandling.PropertyChanges"/> is a class for managing property subscriptions both global and per instance.
+            <c>Global(Un)Subscribe</c> methods may be used for global subscriptions (for all-instances)
+            and <see cref="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker,System.String,System.Object,System.Object)"/> should be used to fire both per-instance and global PropertyChanged events.
+            Usually used in conjunction with Fody <c>PropertyChangedNotificationInterceptor.Intercept</c> which may be implemented as:
+            <code>
+            public static class PropertyChangedNotificationInterceptor2
+            {
+                public static void Intercept(INotifyPropertyChangedInvoker invoker, string propertyName, object? before, object? after) => PropertyChanges.FirePropertyChanged(invoker, propertyName, before, after);
+            }
+            </code>
+            Read more about property changes in README.md.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker,System.String,System.Object,System.Object)">
+            <summary>Fires both per-instance (using <see cref="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)"/>) and global property change events. If <paramref name="before"/> and <paramref name="after"/> both <c>null</c> it assumes that no before/after values available.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs)">
+            <summary>Fires both per-instance (using <see cref="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)"/>) and global property change events.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(System.Object,System.String)">
+            <summary>If <paramref name="source"/> is <see cref="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker"/> then invokes <see cref="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)"/> which fires per-instance property changes. Anyway fires global property change events.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(System.Object,System.String,System.Object,System.Object)">
+            <summary>If <paramref name="source"/> is <see cref="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker"/> then invokes <see cref="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)"/> which fires per-instance property changes. Anyway fires global property change events.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.FirePropertyChanged(System.Object,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs)">
+            <summary>If <paramref name="source"/> is <see cref="T:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker"/> then invokes <see cref="M:Eco.Core.PropertyHandling.INotifyPropertyChangedInvoker.InvokePropertyChanged(System.ComponentModel.PropertyChangedEventArgs)"/> which fires per-instance property changes. Anyway fires global property change events.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalSubscribe(System.Type,System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Subscribes for <paramref name="propertyName"/> changes on all instances of <paramref name="type"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalUnsubscribe(System.Type,System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Unsubscribes from <paramref name="propertyName"/> changes on all instances of <paramref name="type"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalSubscribe(System.Type,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Subscribes for all notified properties changes on all instances of <paramref name="type"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalUnsubscribe(System.Type,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Unsubscribes from all notified properties changes on all instances of <paramref name="type"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalSubscribeInternal(System.Type,System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Subscribes for all notified properties/concrete property changes on all instances of <paramref name="type"/>. For internal usage.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GetOrAddTypeSubscriptions(System.Type)">
+            <summary>Returns <see cref="T:Eco.Core.PropertyHandling.TypeSubscriptions"/> mapped to <paramref name="type"/> which then may be used for global subscriptions.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.PropertyChanges.GlobalUnsubscribeInternal(System.Type,System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Unsubscribes for all notified properties/concrete property changes on all instances of <paramref name="type"/>. For internal usage.</summary>
+        </member>
+        <member name="T:Eco.Core.PropertyHandling.TypeSubscriptions">
+            <summary>Internal class used by <see cref="T:Eco.Core.PropertyHandling.PropertyChanges"/> for global subscriptions (per-property and all-properties).</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.TypeSubscriptions.Invoke(System.Object,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventArgs)">
+            <summary>Invokes all type subscriptions (both per property and for all properties).</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.TypeSubscriptions.Add(System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Adds <paramref name="handler"/> as callback for changes of <paramref name="propertyName"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.TypeSubscriptions.Remove(System.String,Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Removes <paramref name="handler"/> from callbacks for changes of <paramref name="propertyName"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.TypeSubscriptions.Add(Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Adds <paramref name="handler"/> as callback for any property changes.</summary>
+        </member>
+        <member name="M:Eco.Core.PropertyHandling.TypeSubscriptions.Remove(Eco.Core.PropertyHandling.PropertyChangedBeforeAfterEventHandler)">
+            <summary>Removes <paramref name="handler"/> from any property changes handlers.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1">
+            <summary>Custom <see cref="T:System.ComponentModel.TypeConverter"/> for converting derived types to and from strings for use with the Eco server configuration UI</summary>
+            <typeparam name="TType">Base Interface to generated derrived options from.</typeparam>
+            <remarks>
+            To utilize the InterfaceDerivedTypesConverter for type selection create your property as normal then mark it with the TypeConverter attribute passing
+            the type of the InterfaceDerivedTypesConverter as its first parameter.
+            </remarks>
+            <seealso cref="T:System.ComponentModel.ExpandableObjectConverter"/>
+        </member>
+        <member name="M:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1.CanConvertFrom(System.ComponentModel.ITypeDescriptorContext,System.Type)">
+            <summary>
+            Gets a value indicating whether this converter can convert an object in the
+            given source type to a string using the specified context.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1.CanConvertTo(System.ComponentModel.ITypeDescriptorContext,System.Type)">
+            <summary>Returns wether this converter can convert the object to specified type,  using the context specified.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1.CreateDerivedTypeInstance(System.String,System.Type)">
+            <summary>
+            Overridable method for creating the user selected <see cref="T:System.Type"/> instance. Intended for custom derived type converter
+            implementations.
+            </summary>
+            <param name="name">Name of the derived type being created</param>
+            <param name="derivedType">Type of the object that needs to be created</param>
+            <returns>Newly created type instance or null if invalid</returns>
+        </member>
+        <member name="M:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1.GetDerivedTypeFromName(System.String)">
+            <summary>Attempts to create a new derived type given the selected string name of the type.</summary>
+            <param name="name">Name to use in identifying the type to instantiate</param>
+            <returns>Newly instantiated type if found. Otherwise null</returns>
+        </member>
+        <member name="M:Eco.Core.Serialization.Converters.InterfaceDerivedTypesConverter`1.GetStandardValues(System.ComponentModel.ITypeDescriptorContext)">
+            <summary>Creates a <see cref="T:System.ComponentModel.TypeConverter.StandardValuesCollection"/> containing all the names of our derrived types for displaying to the user</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Converters.UniversalDateTimeConverter">
             <summary>
@@ -1518,6 +2170,9 @@
         <member name="M:Eco.Core.Serialization.DataStore.ExclusiveAccess.PurgeAsync(System.String)">
             <inheritdoc cref="M:Eco.Core.Serialization.DataStore.PurgeAsync(Eco.Core.Serialization.DataStore.ExclusiveAccess,System.String)"/>
         </member>
+        <member name="M:Eco.Core.Serialization.DataStore.ExclusiveAccess.LoadAndRemove``1(System.String,System.Action{``0,System.String})">
+            <inheritdoc cref="M:Eco.Core.Serialization.DataStore.LoadAndRemove``1(Eco.Core.Serialization.DataStore.ExclusiveAccess,System.String,System.Action{``0,System.String})"/>
+        </member>
         <member name="M:Eco.Core.Serialization.DataStore.InitEntryDictionaries">
             <summary>Init entry dictionaries with reflection, because default <see cref="M:Ionic.Zip.ZipFile.RemoveEntry(Ionic.Zip.ZipEntry)"/> is very very slow for archives with big number of files. It also doesn't allow to remove entries with Windows paths.</summary>
         </member>
@@ -1542,6 +2197,9 @@
         <member name="M:Eco.Core.Serialization.DataStore.WriteAsync(System.String,System.String)">
             <summary>Writes <paramref name="content"/> to the entry with name <paramref name="fileName"/>.</summary>
         </member>
+        <member name="M:Eco.Core.Serialization.DataStore.LoadAndRemove``1(Eco.Core.Serialization.DataStore.ExclusiveAccess,System.String,System.Action{``0,System.String})">
+            <summary>Loads object and removes entries from zip-archive. May be used during conversion pass from old zip entries to new zip entries.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Internal.IObjectReference">
             <summary>Used during deserialization for object references for late resolving (i.e. from <see cref="T:Eco.Core.Systems.IRegistrar"/>.</summary>
         </member>
@@ -1559,14 +2217,6 @@
         </member>
         <member name="M:Eco.Core.Serialization.Internal.IObjectReferenceService.MakeReference(System.Type,System.Int32)">
             <summary>Makes <see cref="T:Eco.Core.Serialization.Internal.IObjectReference"/> for <paramref name="type"/> and <paramref name="id"/>.</summary>
-        </member>
-        <member name="T:Eco.Core.Serialization.Internal.RegistrarObjectReference">
-            <summary><see cref="T:Eco.Core.Systems.IRegistrar"/> object reference resolved by <see cref="F:Eco.Core.Serialization.Internal.RegistrarObjectReference.Type"/> and <see cref="F:Eco.Core.Serialization.Internal.RegistrarObjectReference.Id"/>.</summary>
-            <inheritdoc cref="T:Eco.Core.Serialization.Internal.IObjectReference"/>
-        </member>
-        <member name="T:Eco.Core.Serialization.Internal.RegistrarObjectReferenceService">
-            <summary><see cref="T:Eco.Core.Serialization.Internal.IObjectReferenceService"/> for <see cref="T:Eco.Core.Systems.IRegistrar"/> objects.</summary>
-            <inheritdoc cref="T:Eco.Core.Serialization.Internal.IObjectReferenceService"/>
         </member>
         <member name="T:Eco.Core.Serialization.Internal.UniversalIdReference">
             <summary>Reference to <see cref="T:Eco.Core.Systems.UniversalIDs"/> object.</summary>
@@ -1650,6 +2300,27 @@
         <member name="M:Eco.Core.Serialization.Migrations.CollectionEntriesMigration.MigrateElements(Eco.Core.Serialization.Migrations.MigrationContext,System.IO.BinaryReader,System.IO.BinaryWriter,System.Int32)">
             <summary>Migrate elements from <paramref name="reader"/> to <paramref name="writer"/>. Returns new number of migrated elements (passed by <see cref="F:Eco.Core.Serialization.Migrations.CollectionEntriesMigration.filter"/>).</summary>
         </member>
+        <member name="M:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration.AddKeyOutputGenerator(System.Func{System.Collections.Generic.IDictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})">
+            <summary>
+            Adds key output generator modification. <paramref name="keyGenerator"/> generates <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/> for an entry key.
+            <see cref="P:Eco.Core.Serialization.Migrations.MigrationContext.DataInputs"/> provided as second argument and may be used for accessing other registered data inputs.
+            <example>
+            Migration from list of CurrencyHolding to Dictionary with Currency.SerializedId as a key.
+            <code><![CDATA[
+            var dm = new DataMigration(typeof(BankAccount));
+            var holdingsMigration = new CollectionToDictionaryDataMigration(SchemaUtils.GetSchemaType(typeof(CurrencyHolding)));
+            var serializedId      = holdingsMigration.ItemInput.Member("Currency").Member("SerializedID");
+            holdingsMigration.AddKeyOutputGenerator(inputs => inputs[serializedId]);
+            dm.MigrateMember(nameof(BankAccount.CurrencyHoldings), holdingsMigration);
+            ]]></code></example>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration.AddKeyOutputGenerator``1(System.Func{System.Collections.Generic.IDictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},``0})">
+            <summary>Same as <see cref="M:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration.AddKeyOutputGenerator(System.Func{System.Collections.Generic.IDictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})"/>, but generates a value instead of <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration.MigrateEntries(System.Int32,Eco.Core.Serialization.Migrations.MigrationContext,System.IO.BinaryWriter)">
+            <summary>Migrates Collection to Dictionary entries. Number of entries provided as <paramref name="count"/>. Migrated content written to <paramref name="writer"/>.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Migrations.ConcreteTypeMigration">
             <summary> Migration from base type to multiple concrete types based on object's field values. If you need to migrate only by single field you can use simplified <see cref="T:Eco.Core.Serialization.Migrations.ConcreteTypeMigration`1"/>. </summary>
         </member>
@@ -1694,11 +2365,58 @@
         <member name="M:Eco.Core.Serialization.Migrations.DataMigration.ChangeSchemaType(System.String)">
             <summary>Changes class schema type to <paramref name="newSchemaType"/>. I.e. after all members converted you may decide to convert class itself to another type.</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.DataInput">
+            <summary>
+            <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.DataInput"/> defines input for migration which optionally may have own member inputs. During migration it may <see cref="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.Read(Eco.Core.Serialization.Migrations.MigrationManager,System.IO.BinaryReader,System.IO.Stream,Eco.Core.Serialization.Serializers.ISerializer,System.Collections.Generic.Dictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})"/> from <see cref="T:System.IO.BinaryReader"/> <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/> for itself and for all own members and update data mapping.
+            Using data inputs let you avoid full objects deserialization (and so delay it until actual deserialization stage keeping it binary compatible with migrations for newer versions).
+            I.e. you need to add a comment containing creator id to some entity. With data input it can be done like:
+            <code><![CDATA[
+            this.AddDataMigration(typeof(SomeType), dm => {
+                var creatorId = dm.Member("Creator").ReferenceId();
+                dm.AddMember<string>("Comment", new[] { creatorId }, inputs => $"Creator ID: {inputs[0].Value}");
+            });
+            ]]></code>
+            If you then have another migration for <c>SomeType</c> then it will work just fine with new serialized content containing Comment field.
+            
+            Without data inputs you need to do it hacky way like
+            <code><![CDATA[
+            new ObjectInstanceMigration<SomeType, SomeType>(typeName, obj => {
+                SimpleFixups.Add(() => obj.Comment = $"Creator ID: {obj.Creator.Value}");
+            });
+            ]]></code>
+            It may look simpler, but it makes this migration incompatible with any further migration. I.e. if you then have new migration which uses Comment value for something else then you need to
+            modify old migration to do the update in SimpleFixup block in addition to new migration to make it compatible with different save versions.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.Member(System.String)">
+            <summary>Input's member. Only valid for class/struct instance inputs.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.ReferenceId">
+            <summary>Input's reference id. Only valid for inputs representing serialized references.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.Read(Eco.Core.Serialization.Migrations.MigrationManager,System.IO.BinaryReader,System.IO.Stream,Eco.Core.Serialization.Serializers.ISerializer,System.Collections.Generic.Dictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})">
+            <summary>Reads input and nested inputs (for <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.members"/> or <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.referenceId"/>) from <paramref name="reader"/> and puts to <paramref name="data"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.ReadReferenceHeader(System.IO.BinaryReader,Eco.Core.Serialization.Serializers.ISerializer)">
+            <summary>Reads serialized object header and returns <see cref="T:Eco.Core.Serialization.Serializers.ObjectSerializer"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.DataInput.ReadObjectHeader(Eco.Core.Serialization.Migrations.MigrationManager,System.IO.BinaryReader,Eco.Core.Serialization.Serializers.ISerializer)">
+            <summary>Reads serialized object header and returns <see cref="T:Eco.Core.Serialization.Serializers.ObjectSerializer"/>.</summary>
+        </member>
         <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.IDataModification.Apply(Eco.Core.Serialization.Migrations.MigrationContext)">
             <summary>
             Applies modification to `data`.
             </summary>
             <param name="context"></param>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.IEntryDataModification">
+            <summary>Data modification for an entry of dictionary or collection.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.IEntryDataModification.ModifyEntry(System.Collections.Generic.Dictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})">
+            <summary>Modifies <paramref name="dataInputs"/> for a collection or dictionary entry.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataInput">
+            <summary>Represents class member data input.</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification">
             <summary>Base class for data member modifications (update, add, migrate, remove etc). Used in <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/>.</summary>
@@ -1711,14 +2429,25 @@
         </member>
         <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification`1">
             <summary>Base class for data member modifications with known output value type. Used in <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/>.</summary>
-            <inheritdoc/>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification`1.ReplaceWithCachedObjectsSerializerIfNeeded(Eco.Core.Serialization.Migrations.MigrationManager,Eco.Core.Serialization.Serializers.ISerializer)">
+            <summary>Once <typeparamref name="TOutput"/> instantiated it is unsafe to serialize it back again to avoid copies creation, especially for singletons. Instead <see cref="T:Eco.Core.Serialization.Serializers.CachedObjectSerializer"/> should be used which saves an instance in memory and serializes just reference to it.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification`1.TryGenerateValue(System.Collections.Generic.Dictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},`0@)">
             <summary>Tries to generate value for data member. Returns <c>false</c> if value can't be generated and member should be removed.</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberNameChangeDataModification">
+            <summary>Rename member data modification.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.MigrationDataModification">
             <summary><see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification"/> which applies modification to member with custom <see cref="T:Eco.Core.Serialization.Migrations.IMigration"/>.</summary>
             <inheritdoc cref="T:Eco.Core.Serialization.Migrations.DataMigrations.MemberDataModification"/>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification">
+            <summary>Modification with generates <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/> with <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification.generateOutput"/> function for specified <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification.dataInput"/>. May be used by <see cref="T:Eco.Core.Serialization.Migrations.DictionaryDataMigration"/> or <see cref="T:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration"/> for key/value data generation.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification`1">
+            <summary>Modification with generates <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/> for value of type <typeparamref name="TOutput"/> with <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification`1.generateOutput"/> function for specified <see cref="F:Eco.Core.Serialization.Migrations.DataMigrations.OutputEntryDataModification`1.dataInput"/>. May be used by <see cref="T:Eco.Core.Serialization.Migrations.DictionaryDataMigration"/> or <see cref="T:Eco.Core.Serialization.Migrations.CollectionMigrations.CollectionToDictionaryDataMigration"/> for key/value data generation.</summary>
         </member>
         <member name="P:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput.Count">
             <summary>Returns count of elements for Data Input value. For string it will be length of string, for enumerable or array number of elements in collection.
@@ -1731,7 +2460,44 @@
         </member>
         <member name="T:Eco.Core.Serialization.Migrations.DataMigrations.SchemaTypeChangeModification">
             <summary><see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.IDataModification"/> which changes schema type of data object itself (not one of it's members).</summary>
-            <inheritdoc/>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryDataMigration">
+            <summary>
+            Migration for both key and value. Original key and value may be accessed with <see cref="P:Eco.Core.Serialization.Migrations.DictionaryDataMigration.KeyInput"/> and <see cref="P:Eco.Core.Serialization.Migrations.DictionaryDataMigration.ValueInput"/>.
+            It let you manipulate with Dictionary data at binary level similar way as <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/> works. With data inputs for key and value you can
+            access serialized data in binary form and use it for key and value generation. Migration itself doesn't define default modifications, but instead
+            modifications should be added with methods like <see cref="M:Eco.Core.Serialization.Migrations.DictionaryDataMigration.AddKeyTransform(System.Func{System.Collections.Generic.IDictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})"/>.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DictionaryDataMigration.AddKeyTransform(System.Func{System.Collections.Generic.IDictionary{Eco.Core.Serialization.Migrations.DataMigrations.IDataInput,Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput},Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput})">
+            <summary>
+            Adds key transform modification. <paramref name="keyTransform"/> converts data input for a key to new key data input. <see cref="P:Eco.Core.Serialization.Migrations.MigrationContext.DataInputs"/> provided as second argument and may be used for accessing other registered data inputs.
+            <example><code><![CDATA[
+            var dm = new DataMigration(typeof(BankAccount));
+            var holdingsMigration = new DictionaryDataMigration("int", SchemaUtils.GetSchemaType(typeof(Currency)));
+            var serializedId      = holdingsMigration.ValueInput.Member("Currency").Member("SerializedID");
+            holdingsMigration.AddKeyTransform(inputs => inputs[serializedId]);
+            dm.MigrateMember(nameof(BankAccount.CurrencyHoldings), holdingsMigration);
+            ]]></code></example>
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.DictionaryDataMigration.MigrateEntries(System.Int32,Eco.Core.Serialization.Migrations.MigrationContext,System.IO.BinaryWriter)">
+            <summary>Migrates Dictionary entries. Number of entries provided as <paramref name="count"/>. Migrated content written to <paramref name="writer"/>.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryExtendMigration">
+            <summary>Migration extending dictionary with new items. Items should be generated with provided function.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryKeyMigration`2">
+            <summary>Migrates all dictionary keys to new key values using <see cref="F:Eco.Core.Serialization.Migrations.DictionaryKeyMigration`2.converter"/>.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryMigrations.DictionaryEntriesMigration">
+            <summary>Base class for for dictionary entries migrations. Supports items filtering, but can't convert empty dictionary to non-empty.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryMigrations.DictionaryMigration">
+            <summary>Base class for dictionary migrations. Initializes schema types and key/value serializers.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.DictionaryMigrations.DictionaryValueMigration`2">
+            <summary>Migrates all dictionary values to new value using <see cref="F:Eco.Core.Serialization.Migrations.DictionaryMigrations.DictionaryValueMigration`2.converter"/>.</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Migrations.DummyMigration">
             <summary>
@@ -1775,6 +2541,12 @@
         <member name="M:Eco.Core.Serialization.Migrations.InstanceMigration.#ctor(System.Collections.Generic.IEnumerable{System.String})">
             <summary>Constructs new <see cref="T:Eco.Core.Serialization.Migrations.InstanceMigration"/> which works with <paramref name="compatibleTypes"/>. <paramref name="compatibleTypes"/> is either schema types or type names or mix.</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.IPostLoadMigration">
+            <summary>Migration which performs some actions <see cref="M:Eco.Core.Serialization.Migrations.IPostLoadMigration.OnPostLoad"/>. Call to <see cref="M:Eco.Core.Serialization.Migrations.IPostLoadMigration.OnPostLoad"/> adds to <see cref="F:Eco.Core.Serialization.Serializers.ClassSerializer.PostLoadMethods"/> if migration version higher than save version.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.IPostLoadMigration.OnPostLoad">
+            <summary>Callback for post-load migration actions.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Migrations.IReferenceMigration">
             <summary>Interface for object References migrations. I.e. for <see cref="T:Eco.Core.Serialization.Migrations.ClassRenameMigration"/> you need it to change reference type.</summary>
         </member>
@@ -1790,38 +2562,74 @@
         <member name="T:Eco.Core.Serialization.Migrations.KeyToReferenceMigration`2">
             <summary>Migrates a key to reference which have to be resolved by the key using <see cref="F:Eco.Core.Serialization.Migrations.KeyToReferenceMigration`2.referenceResolver"/>.</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.MappedReferenceMigration`1">
+            <summary>Migration for mapping from reference ID to object with <see cref="F:Eco.Core.Serialization.Migrations.MappedReferenceMigration`1.mapper"/> instead of standard reference resolve logic.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Migrations.MigrationCollection">
+            <summary>Collection of migrations. Unlike <see cref="T:Eco.Core.Serialization.Migrations.AggregateMigration"/> these migrations are unordered and may be applied independently.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationCollection.AddMigration(Eco.Core.Serialization.Migrations.IClassMigration)">
+            <summary>Add <paramref name="migration"/> to the collection.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationCollection.AddDataMigration``1(System.Action{Eco.Core.Serialization.Migrations.DataMigration})">
+            <summary>Add new <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/> for type <typeparamref name="T"/> to the collection. <paramref name="configure"/> action may be used to add data modifications to the migration.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationCollection.AddDataMigration(System.Type,System.Action{Eco.Core.Serialization.Migrations.DataMigration})">
+            <summary>Add new <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/> for type <paramref name="type"/> to the collection. <paramref name="configure"/> action may be used to add data modifications to the migration.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationCollection.AddDataMigration(System.String,System.Action{Eco.Core.Serialization.Migrations.DataMigration})">
+            <summary>Add new <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/> for type name or schema type to the collection. <paramref name="configure"/> action may be used to add data modifications to the migration.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Migrations.MigrationManager">
             <summary>Class responsible for migration stuff. It holds migrations, migration types for different versions and can apply them.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddInstanceMigration(System.Single,Eco.Core.Serialization.Migrations.IInstanceMigration)">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddMigrations(System.Double,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.IClassMigration})">
+            <summary>Adds all migrations from enumerable with same <paramref name="sinceVersion"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddInstanceMigration(System.Double,Eco.Core.Serialization.Migrations.IInstanceMigration)">
             <summary>Adds <see cref="T:Eco.Core.Serialization.Migrations.IInstanceMigration"/> which will be applied <paramref name="sinceVersion"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddReferenceMigration(System.Single,Eco.Core.Serialization.Migrations.IReferenceMigration)">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddReferenceMigration(System.Double,Eco.Core.Serialization.Migrations.IReferenceMigration)">
             <summary>Adds <see cref="T:Eco.Core.Serialization.Migrations.IReferenceMigration"/> which will be applied <paramref name="sinceVersion"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddTypeMigration(System.Single,Eco.Core.Serialization.Migrations.ITypeMigration)">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddTypeMigration(System.Double,Eco.Core.Serialization.Migrations.ITypeMigration)">
             <summary>Adds <see cref="T:Eco.Core.Serialization.Migrations.ITypeMigration"/> which will be applied <paramref name="sinceVersion"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddMigratedType(System.Single,Eco.Core.Serialization.Migrations.Attributes.MigratedTypeAttribute)">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddMigratedType(System.Double,Eco.Core.Serialization.Migrations.Attributes.MigratedTypeAttribute)">
             <summary>Adds <see cref="T:Eco.Core.Serialization.Migrations.Attributes.MigratedTypeAttribute"/> which will be used to access erased information for migrated type (i.e. if it was struct and was changed to class or vice versa).</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.IsMigrationOnlyType(System.Type)">
+            <summary>Checks if <paramref name="type"/> is a type which only used during migration. Such a type should be fully serialized instead of <see cref="P:Eco.Core.Serialization.Migrations.MigrationManager.CachedObjectsSerializer"/> usage.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.TryCreateMigrationChainSerializer(System.String,Eco.Core.Serialization.SerializerSchema,Eco.Core.Serialization.Serializers.ISerializer@)">
             <summary>Tries to create <see cref="T:Eco.Core.Serialization.Serializers.MigrationChainSerializer"/>. Success if there any registered migrations for <paramref name="schemaType"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateInstance(Eco.Core.Serialization.Migrations.MigrationContext)">
-            <summary>Migrates class instance provided with <paramref name="context"/>.</summary>
-        </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateReference(Eco.Core.Serialization.Migrations.MigrationContext)">
-            <summary>Migrates object reference in the <paramref name="context"/> specified with <see cref="P:Eco.Core.Serialization.Migrations.MigrationContext.ReferenceTypeName"/> and <see cref="P:Eco.Core.Serialization.Migrations.MigrationContext.ReferenceId"/>.</summary>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddSerializers">
+            <summary>Add extra serializers for <see cref="T:Eco.Core.Serialization.Migrations.MigrationManager"/>.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateType(System.String)">
             <summary>Migrates <see cref="T:System.Type"/> if it was renamed.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateTypeInternal(System.String@,System.Single@,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{Eco.Core.Serialization.Migrations.ITypeMigration}})">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateTypeInternal(System.String@,System.Double@,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{Eco.Core.Serialization.Migrations.ITypeMigration}})">
             <summary>Migrates <paramref name="typeName"/> to new type name using <paramref name="migrations"/>. It updates <paramref name="typeName"/> and <paramref name="version"/> as result. Returns <c>true</c> if migration fully finished.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.Migrate(Eco.Core.Serialization.Migrations.MigrationContext)">
-            <summary>Migrates <paramref name="context"/> and returns <see cref="M:Eco.Core.Serialization.Migrations.MigrationManager.DecodeObject(Eco.Core.Serialization.Migrations.ImmutableSerializerSchema,System.IO.BinaryReader)"/> (either reference or instance).</summary>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.GetSerializerFromSchemaType(System.String)">
+            <summary>Tries to find serializer for <paramref name="schemaType"/>. If not exists then returns default <see cref="P:Eco.Core.Serialization.Migrations.MigrationManager.ObjectSerializer"/> for class schema types or throws exception.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.GetOrCreateSerializerFromSchemaType(System.String)">
+            <summary>Tries to find serializer for <paramref name="schemaType"/>. If not exists then either will try to create new serializer for container types (dictionary or collection) or returns default <see cref="P:Eco.Core.Serialization.Migrations.MigrationManager.ObjectSerializer"/> for class schema types.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.DecodeObject(Eco.Core.Serialization.Migrations.MigrationContext)">
+            <summary>Migrates <paramref name="context"/> and returns <see cref="T:Eco.Core.Serialization.DecodedObject"/> (either reference or instance).</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.Migrate(Eco.Core.Serialization.Migrations.MigrationContext,System.Nullable{System.Double})">
+            <summary>Migrates <paramref name="context"/> up to <paramref name="tillVersion"/> if specified or to latest version.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.Migrate(Eco.Core.Serialization.Migrations.MigrationContext,System.Action{Eco.Core.Serialization.Migrations.IInstanceMigration,Eco.Core.Serialization.Migrations.MigrationContext},System.Action{Eco.Core.Serialization.Migrations.IReferenceMigration,Eco.Core.Serialization.Migrations.MigrationContext},System.Nullable{System.Double})">
+            <summary>
+            Migrates content with <paramref name="context"/> up to <paramref name="tillVersion"/> (if specified). Can be used by other migrations (like <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/>) which applies member modifications to members which have earlier version(s) migrations.
+            Uses provided <paramref name="migrateInstance"/> and <paramref name="migrateReference"/> actions for appropriate migrations. Migration may be performed for object content only or who whole object and so it may require different migrate actions.
+            </summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.DecodeObject(Eco.Core.Serialization.Migrations.ImmutableSerializerSchema,System.IO.BinaryReader)">
             <summary>
@@ -1836,6 +2644,20 @@
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.AddReferencedObjectSerializer(System.String,System.Type,System.Func{System.Object,System.Object})">
             <summary>Adds new <see cref="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer"/> created for provided arguments.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.GetOrCreateVersionedSerializer(Eco.Core.Serialization.Migrations.ImmutableSerializerSchema,System.Double)">
+            <summary>
+            Gets or creates versioned serializer. If migration for <paramref name="schema"/> required then it will start from <paramref name="version"/> instead of current schema version.
+            Typical use-case if you have a <see cref="T:Eco.Core.Serialization.Migrations.DataMigration"/> which performs migration on a member which has migrations before and after that data migration.
+            Then you fist migrate the member up-to version compatible with data migration then perform modifications for member from data modification itself and serialize it back with data migration version.
+            When member will be decoded it will apply all migrations after the version of data migration. 
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateInstanceInternal(Eco.Core.Serialization.Migrations.MigrationContext,Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery,System.Action{Eco.Core.Serialization.Migrations.IInstanceMigration,Eco.Core.Serialization.Migrations.MigrationContext})">
+            <summary>Applies class migrations to <paramref name="context"/>. Returns <c>true</c> if <paramref name="context"/> fully migrated.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrateReferenceInternal(Eco.Core.Serialization.Migrations.MigrationContext,Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery,System.Action{Eco.Core.Serialization.Migrations.IReferenceMigration,Eco.Core.Serialization.Migrations.MigrationContext})">
+            <summary>Applies reference migrations to <paramref name="context"/>. Returns <c>true</c> if <paramref name="context"/> fully migrated.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.ReadMembers(System.IO.BinaryReader,System.Collections.Generic.IDictionary{System.String,Eco.Core.Serialization.Migrations.DataMigrations.MemberDataInput},Eco.Core.Serialization.Migrations.ImmutableSerializerSchema,System.Collections.Generic.Dictionary{System.String,System.ValueTuple{System.Int64,System.Int64}}@)">
             <summary>
@@ -1867,7 +2689,10 @@
             <param name="data">data dictionary to store requested members data.</param>
             <param name="memberRanges">output dictionary with mapping between member names and they reader's positions.</param>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.IsNullableType(System.String,System.Single)">
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.EncodeWith(Eco.Core.Serialization.Serializers.ISerializer,System.IO.BinaryWriter,System.Object,Eco.Core.Serialization.SerializeFlags)">
+            <summary></summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.IsNullableType(System.String,System.Double)">
             <summary>
             Returns if type is nullable in specific schema version.
             </summary>
@@ -1888,11 +2713,23 @@
             <param name="schema">schema.</param>
             <param name="reader">reader to skip from.</param>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery">
+            <summary>Helper struct for querying versions migrations with <see cref="F:Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery.tillVersion"/> support.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery.TryGetVersionedMigrations``1(Eco.Core.Serialization.Migrations.VersionedTypeMapping{``0},System.String,System.Double,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{``0}}@)">
+            <summary>Returns versioned migrations for <paramref name="mapping"/>. Optionally applying <see cref="F:Eco.Core.Serialization.Migrations.MigrationManager.MigrationsQuery.tillVersion"/> constraint.</summary>
+        </member>
         <member name="T:Eco.Core.Serialization.Migrations.MigrationType">
             <summary> Contains information about new type added during migration. Without this info it won't be possible to encode the type. </summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationUtils.SerializeNullAsReader">
             <summary> Serializes null object value as <see cref="T:System.IO.BinaryReader"/>. </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationUtils.SerializeAsReaderDataInput``1(Eco.Core.Serialization.Serializers.ISerializer,System.String,``0)">
+            <summary>Serializes <paramref name="value"/> as <see cref="T:Eco.Core.Serialization.Migrations.DataMigrations.ReaderDataInput"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.MigrationUtils.CopyMigratedContent(Eco.Core.Serialization.Migrations.IMigration,Eco.Core.Serialization.Migrations.MigrationContext,System.IO.BinaryWriter)">
+            <summary>Copies content migrated with <paramref name="migration"/> to <paramref name="writer"/>.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.MigrationUtils.CopySerializerContent(Eco.Core.Serialization.Serializers.ISerializer,System.IO.BinaryReader,System.IO.BinaryWriter)">
             <summary>
@@ -1937,11 +2774,18 @@
             It allows to migrate object to null or to value type (opposite to <see cref="T:Eco.Core.Serialization.Migrations.ObjectInstanceMigration`2"/>).
             </summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Migrations.ReferenceCollectionToDictionaryMigration">
+            <summary> Used to migrate a collection of references into a dictionary, with ID as key ('null' entries are skipped). </summary>
+            <remarks> Useful when wanting to migrate a ControllerList without having to wait for registrar initialization.    </remarks>
+        </member>
         <member name="M:Eco.Core.Serialization.Migrations.SchemaUtils.GetSchemaType(System.Type)">
             <summary>Returns schema name corresponding to type. It uses generation rules or built-in name if available.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.SchemaUtils.AsClassSchemaType(System.String)">
             <summary>Returns class schema type. If <paramref name="typeNameOrSchemaType"/> already class schema type then returns as is otherwise assume it is type name and builds schema type from the type name.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.SchemaUtils.GetClassSchemaType(System.String)">
+            <summary>Returns class schema type for <paramref name="typeName"/>. If <paramref name="typeName"/> is generic type name then it will be converted to schema compatible name like List`1[[System.String, Version=1.0.0.0, PublicToken=null, Culture=neutral]] -> class[List{string}].</summary>
         </member>
         <member name="M:Eco.Core.Serialization.Migrations.SchemaUtils.FixOldFormatGenericSchemaType(System.String)">
             <summary> Converts old schema type for generic types into new one. </summary>
@@ -1981,13 +2825,19 @@
         <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.HasMapping(System.String)">
             <summary>Checks if there any mapping for any version for <paramref name="schemaType"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.TryGetVersionedObjects(System.String,System.Single,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{`0}}@)">
+        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.HasMigrations(System.String,System.Double)">
+            <summary>Quick check if there any migrations <paramref name="sinceVersion"/> for <paramref name="schemaType"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.TryGetVersionedObjects(System.String,System.Double,System.Double,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{`0}}@)">
+            <summary>Tries to get versioned objects for <paramref name="schemaType"/> having version greater than <paramref name="sinceVersion"/> and less than <paramref name="tillVersion"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.TryGetVersionedObjects(System.String,System.Double,System.Collections.Generic.IEnumerable{Eco.Core.Serialization.Migrations.VersionedObject{`0}}@)">
             <summary>Tries to get versioned objects for <paramref name="schemaType"/> having version greater than <paramref name="sinceVersion"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.AddRange(System.Collections.Generic.IEnumerable{System.String},System.Single,`0)">
+        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.AddRange(System.Collections.Generic.IEnumerable{System.String},System.Double,`0)">
             <summary>Adds mapping for all <paramref name="schemaTypes"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.Add(System.String,System.Single,`0)">
+        <member name="M:Eco.Core.Serialization.Migrations.VersionedTypeMapping`1.Add(System.String,System.Double,`0)">
             <summary>Adds mapping for <paramref name="schemaType"/>.</summary>
         </member>
         <member name="T:Eco.Core.Serialization.PersistenceManager">
@@ -2059,22 +2909,25 @@
         <member name="M:Eco.Core.Serialization.SerializationUtils.PopulateObjectWithJson(Newtonsoft.Json.Linq.JObject,System.Object,Newtonsoft.Json.ObjectCreationHandling)">
             <summary>Populate json from the JObject. Useful if you need to change json on the way so it won't need to read it twice</summary>
         </member>
-        <member name="F:Eco.Core.Serialization.CurrentSerializer.LoadFinished">
-            <summary>Called when serialization is finished but before '[OnPostLoad]' tagged functions are called. Passes all loaded objects.</summary>
-        </member>
         <member name="M:Eco.Core.Serialization.EcoSerializer.SerializeTo(System.IO.Stream,System.Object)">
             <summary> Serializes <paramref name="obj"/> to <paramref name="stream"/>. </summary>
         </member>
         <member name="M:Eco.Core.Serialization.EcoSerializer.SerializeTo``1(System.IO.Stream,``0)">
             <summary> Serializes <paramref name="obj"/> to <paramref name="stream"/>. </summary>
         </member>
-        <member name="M:Eco.Core.Serialization.EcoSerializer.CollectMigrations(Eco.Core.Serialization.Migrations.MigrationManager)">
+        <member name="M:Eco.Core.Serialization.EcoSerializer.LoadUniversalIDs">
+            <summary>Loads objects with serialized universal ids.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.EcoSerializer.ScanForMigrationClasses">
+            <summary>Scans all assemblies to find types with <see cref="T:Eco.Core.Serialization.Migrations.Attributes.MigrationAttribute"/> and returns array of such types ordered by migration target version.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.EcoSerializer.AddMigrations(Eco.Core.Serialization.Migrations.MigrationManager,System.ValueTuple{System.Type,System.Double}[],System.Double)">
             <summary>Collects all suitable migrations (which should be applied since <see cref="P:Eco.Core.Serialization.EcoSerializer.LastVersion"/>).</summary>
         </member>
         <member name="M:Eco.Core.Serialization.EcoSerializer.CollectMigrationTypes">
             <summary>Collects and registers all applicable migration types (with SinceVersion > LastVersion). See <see cref="T:Eco.Core.Serialization.Migrations.Attributes.MigrationTypeAttribute"/> and <see cref="T:Eco.Core.Serialization.Migrations.MigrationType"/>.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.EcoSerializer.CreateMigrationType(System.Type,Eco.Core.Serialization.Migrations.Attributes.MigrationTypeAttribute,System.Nullable{System.Single})">
+        <member name="M:Eco.Core.Serialization.EcoSerializer.CreateMigrationType(System.Type,Eco.Core.Serialization.Migrations.Attributes.MigrationTypeAttribute,System.Nullable{System.Double})">
             <summary>Creates new <see cref="T:Eco.Core.Serialization.Migrations.MigrationType"/> from <paramref name="attribute"/> or returns <c>null</c> if this attribute won't produce the migration type (it should be newer than last schema version).</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Serializers.Array2DSerializer`1">
@@ -2091,6 +2944,9 @@
         </member>
         <member name="M:Eco.Core.Serialization.Serializers.Array2DSerializer`1.DecodeElementsWithValueSerializer(System.IO.BinaryReader,`0[])">
             <summary>Optimized elements decode method using <see cref="F:Eco.Core.Serialization.Serializers.Array2DSerializer`1.valueSerializer"/> if available.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.Serializers.Array2DSkipperSerializer">
+            <summary><see cref="T:Eco.Shared.Utils.Array2D`1"/> skipper (for 2d arrays of removed serialized types).</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Serializers.ArraySerializer">
             <summary>Base class for array serializers. Based on provided parameters to <see cref="M:Eco.Core.Serialization.Serializers.ArraySerializer.Create(System.Type,Eco.Core.Serialization.Serializers.ISerializer)"/> factory method it either creates <see cref="T:Eco.Core.Serialization.Serializers.DefaultArraySerializer"/> or <see cref="T:Eco.Core.Serialization.Serializers.ArraySerializer`1"/> (optimized version for <see cref="T:Eco.Core.Serialization.Serializers.ValueSerializer`1"/>).</summary>
@@ -2163,6 +3019,9 @@
         <member name="P:Eco.Core.Serialization.Serializers.IReferenceableSerializer.ReferenceService">
             <summary>When not null then object may be encoded as reference (preferred if not SerializeFlags.ForceSerializeFullObject).</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.Serializers.LegacyTypeSerializer">
+            <summary>Legacy version of <see cref="T:Eco.Core.Serialization.Serializers.TypeSerializer"/> (before 9.6). May be removed after 10.0 release. Last compatible version should be set to at least 3.9201.</summary>
+        </member>
         <member name="M:Eco.Core.Serialization.Serializers.ObjectSerializer.GetReferenceService(System.Type)">
             <summary>Get <see cref="P:Eco.Core.Serialization.Serializers.ObjectSerializer.ReferenceService"/> for <paramref name="type"/> based on implemented interfaces.</summary>
         </member>
@@ -2179,11 +3038,20 @@
             <summary>Class for referenced objects serialization. Usually used during migration to convert non standard reference to an object (i.e. string to User).</summary>
             <inheritdoc cref="T:Eco.Core.Serialization.Serializers.ObjectSerializer"/>
         </member>
-        <member name="M:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer.EncodeAsReference(System.IO.BinaryWriter,System.IO.BinaryReader)">
+        <member name="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot">
+            <summary>
+            Root Referenced Object serializer for schema type lookup. When serializer ID isn't known and only schema type is available it may be resolved to <see cref="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot"/> which then delegates logic to concrete <see cref="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer"/>.
+            It saves concrete serializer ID as part of instance data, so even if just instance data is available it still possible to get concrete referenced object serializer and resolve it to valid instance. 
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot.#ctor(Eco.Core.Serialization.SimpleSerializer)">
+            <summary>Constructor for root ReferencedObjectSerializer. It not intended to be used for encoding/decoding, but as abstract root delegating to real instances of <see cref="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot.EncodeAsReference(System.IO.BinaryWriter,System.IO.BinaryReader)">
             <summary>Encodes key from <paramref name="keyReader"/> as a reference by the key to <paramref name="writer"/>. </summary>
         </member>
-        <member name="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer.Reference">
-            <summary>Object reference with custom <see cref="F:Eco.Core.Serialization.Serializers.ReferencedObjectSerializer.referenceResolver"/> function.</summary>
+        <member name="T:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot.Reference">
+            <summary>Object reference with custom <see cref="F:Eco.Core.Serialization.Serializers.ReferencedObjectSerializerRoot.referenceResolver"/> function.</summary>
         </member>
         <member name="T:Eco.Core.Serialization.Serializers.IValueSerializer">
             <summary>This interface helps to identify serializes which inherits from <see cref="T:Eco.Core.Serialization.Serializers.ValueSerializer`1"/> and get their <see cref="P:Eco.Core.Serialization.Serializers.IValueSerializer.ValueType"/>.</summary>
@@ -2203,14 +3071,35 @@
         <member name="M:Eco.Core.Serialization.DecodedObject.TryGetNotNullValue(System.Object@)">
             <summary>Tries to get non-null <paramref name="value"/> as already known or resolved from reference. Returns <c>false</c> if value isn't valid reference or it is <c>null</c>.</summary>
         </member>
+        <member name="M:Eco.Core.Serialization.DecodedObject.CleanUp">
+            <summary>Cleanups fixup lists.</summary>
+        </member>
         <member name="M:Eco.Core.Serialization.SimpleSerializer.TryGetReferenceService(System.Type,Eco.Core.Serialization.Internal.IObjectReferenceService@)">
             <summary>Returns <see cref="T:System.ComponentModel.Design.IReferenceService"/> for <paramref name="type"/> if exits.</summary>
         </member>
-        <member name="M:Eco.Core.Serialization.SimpleSerializer.TryMakeReference(System.String,System.Int32,Eco.Core.Serialization.Internal.IObjectReference@)">
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.TryMakeReference(System.String,System.Int32,Eco.Core.Serialization.DecodedObject@)">
             <summary>Tries to make <see cref="T:Eco.Core.Serialization.Internal.IObjectReference"/> for <paramref name="typeName"/> and <paramref name="id"/>. Fails when id is 0 or typeName is null, non-existing type name or isn't referenceable.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.DecodeReference(System.String,System.Int32)">
+            <summary>Decodes reference from <paramref name="typeName"/> and <paramref name="id"/>. Applies migrations for reference if necessary.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.AddObjectSerializerByType(System.Type,Eco.Core.Serialization.Serializers.ObjectSerializer)">
+            <summary>Adds <paramref name="serializer"/> to type mapping.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.SimpleSerializer.CreateClassSchemaSerializer(Eco.Core.Serialization.SimpleSerializer,Eco.Core.Serialization.SerializerSchema)">
             <summary>Creates <see cref="T:Eco.Core.Serialization.Serializers.ClassSerializer"/> for class schema type (class[className]).</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.ReplaceTypeSerializerWithLegacyIfRequired(Eco.Core.Serialization.Migrations.MigrationManager,System.Double)">
+            <summary>Replaces <see cref="T:Eco.Core.Serialization.Serializers.TypeSerializer"/> with <see cref="T:Eco.Core.Serialization.Serializers.LegacyTypeSerializer"/> if schema version has old binary format for Type.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.InitSerializedAsEnumerableTypes">
+            <summary>Initializes standard types which should be serialized as enumerable (like <see cref="T:System.Collections.Generic.Dictionary`2"/> or <see cref="T:System.Collections.Generic.List`1"/>). All other types should have <see cref="T:Eco.Shared.Serialization.SerializedAsEnumerableAttribute"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.InitializeSerializableTypes">
+            <summary>Scans all assemblies with reflection for all serializable types (with [Serialized] or [Eco] attribute).</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.SimpleSerializer.AddSerializableType(System.Type,System.String)">
+            <summary>Add serialized type to <see cref="F:Eco.Core.Serialization.SimpleSerializer.SerializableTypes"/>. If it isn't [Serialized] type, but just type name which may be referenced in serialized types then it adds it's name to <see cref="F:Eco.Core.Serialization.SimpleSerializer.AdditionalSerializedTypeNames"/> instead.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.SimpleSerializer.SerializeTo(System.IO.Stream,System.Object)">
             <summary> Serializes <paramref name="obj"/> to <paramref name="stream"/>. </summary>
@@ -2227,11 +3116,52 @@
         <member name="M:Eco.Core.Serialization.StandardSerializers.CreateStandardSerializers">
             <summary>Creates array of standard serializers to be used by <see cref="T:Eco.Core.Serialization.SimpleSerializer"/> or <see cref="T:Eco.Core.Serialization.Migrations.SchemaUtils"/>. Can't use shared instance, because serializers not stateless and has ID assigned by <see cref="T:Eco.Core.Serialization.SimpleSerializer"/>.</summary>
         </member>
+        <member name="T:Eco.Core.Serialization.StorageBag">
+            <summary><see cref="T:Eco.Core.Serialization.StorageBag"/> is a serializable unordered container for items. Used by <see cref="T:Eco.Core.Serialization.StorageBagDirectory`1"/> as minimal serializable unit for save file entry.</summary>
+        </member>
+        <member name="T:Eco.Core.Serialization.StorageBagDirectory`1">
+            <summary>
+            <see cref="T:Eco.Core.Serialization.StorageBagDirectory`1"/> represents a directory in <see cref="P:Eco.Core.Serialization.StorageBagDirectory`1.StorageManager"/> with set of <see cref="T:Eco.Core.Serialization.StorageBag"/> entries. Each bag contains up to <see cref="P:Eco.Core.Serialization.StorageBagDirectory`1.MaxItemsPerBag"/> items.
+            Intended for cases where lot of items may exists to reduce number of storage handles in Zip Archive. Zip archive slow downs and can even crash if too many entries.
+            </summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.LoadInParallel">
+            <summary>Loads all storage dir items in parallel.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.Add(`0)">
+            <summary>Adds <paramref name="item"/> to one of storage bags in the directory.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.AddToExitingStorageBag(Eco.Core.Serialization.StorageBag,`0)">
+            <summary>Adds <paramref name="item"/> to existing <paramref name="storageBag"/>.</summary>
+            <returns><c>false</c> if bag isn't suitable (removed or full).</returns>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.AddToNewStorageBag(`0)">
+            <summary>Creates new <see cref="T:Eco.Core.Serialization.StorageBag"/> for <paramref name="item"/> and returns it.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.Remove(`0)">
+            <summary>Removes <paramref name="item"/> from the directory.</summary>
+            <returns><c>false</c> if item wasn't added to the directory.</returns>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.Modify``1(``0,System.Action{``0})">
+            <summary>Modifies <paramref name="obj"/> in a way preventing partial object saving.</summary>
+        </member>
+        <member name="M:Eco.Core.Serialization.StorageBagDirectory`1.MarkAllDirty">
+            <summary>Marks all storage bags as dirty to be re-saved.</summary>
+        </member>
         <member name="M:Eco.Core.Serialization.StorageExtensions.Modify``1(``0,System.Action{``0})">
             <summary>Perform storage modification. It ensures it won't be modified or saved in another thread to prevent concurrency issues.</summary>
         </member>
         <member name="M:Eco.Core.Serialization.ZipBlob.GetAndEraseName">
             <inheritdoc cref="M:Eco.Core.Serialization.IPersistent.GetAndEraseName"/>
+        </member>
+        <member name="T:Eco.Core.Systems.GeneratedRegistrar`1">
+            <summary>Implementation of <see cref="T:Eco.Core.Systems.Registrar`1"/> for registrars generated in runtime. Works in pair with <see cref="T:Eco.Core.Systems.GeneratedRegistrarWrapper`1"/>.</summary>
+        </member>
+        <member name="M:Eco.Core.Systems.GeneratedRegistrar`1.AddNameMapping(System.String,`0)">
+            <summary>Adds mapping between name and object, but doesn't allocate ID. IDs allocated when <see cref="M:Eco.Core.Systems.GeneratedRegistrar`1.PreInit(Eco.Shared.Localization.LocString,System.Collections.Generic.Dictionary{System.String,System.Int32}@,System.Boolean,Eco.Core.Plugins.Interfaces.ISaveablePlugin,System.String,System.Boolean)"/> called. May be only used before registrar initialized.</summary>
+        </member>
+        <member name="M:Eco.Core.Systems.GeneratedRegistrar`1.AssignIDs(System.Collections.Generic.Dictionary{System.String,System.Int32}@)">
+            <summary>For generated registrars, we have to assign the IDs after it's loaded.</summary> 
         </member>
         <member name="T:Eco.Core.Systems.GeneratedRegistrarWrapper`1">
             <summary>
@@ -2249,10 +3179,6 @@
         </member>
         <member name="T:Eco.Core.Systems.IHasUniversalID">
             <summary>For any object that needs to be referenced by the client and/or server.</summary>
-        </member>
-        <member name="M:Eco.Core.Systems.IHasUniversalID.RPCCanSetProperty(Eco.Shared.Networking.INetClient,System.String)">
-            <summary>Protects RPCs called on this UniversalID.
-            This function may be implemented by any controller in case if it want to protect it's properties from unauthorized access. Used by ControllerManager.HandleViewRPC. <c>null</c> property for wildcard.</summary>
         </member>
         <member name="T:Eco.Core.Systems.IHasSerializableID">
             <summary>If an object needs to have its ID serialized, it must inherit from this instead.</summary>
@@ -2289,11 +3215,15 @@
             Types that are stored in a registrar must have a private constructor,
             only the registrar is allowed to construct them so that the ID stays assigned and tracked properly.</summary>
         </member>
+        <member name="F:Eco.Core.Systems.Registrar`1.MinNameLength">
+            <summary> Min name length of entry in this registrar, can be overriden in <see cref="M:Eco.Core.Systems.Registrar`1.PreInit(Eco.Shared.Localization.LocString,System.Boolean,Eco.Core.Plugins.Interfaces.ISaveablePlugin,System.String,System.Boolean,System.Int32)"/> </summary>
+        </member>
         <member name="M:Eco.Core.Systems.Registrar`1.Verify">
             <summary> Verifies all entities in the registry and removes all which fails the verification. </summary>
         </member>
-        <member name="M:Eco.Core.Systems.Registrar`1.EnsureId(`0)">
-            <summary> Ensures <paramref name="obj"/> has ID (if ID == 0 then it allocates and assigns new ID). </summary>
+        <member name="M:Eco.Core.Systems.Registrar`1.SanitizeName(System.String@,System.Boolean,System.Boolean,System.String)">
+            <summary>Checks a name for requirements (length and profanity-free). If 'allowChanges' is set, it will fix the name to meet reqs. Otherwise it fails if it
+            doesnt meet reqs.</summary>
         </member>
         <member name="M:Eco.Core.Systems.Registrars.Verify">
             <summary>Verifies all registrars. Should be called when all fixups already applied, makes low level verification and removes invalid entities.</summary>
@@ -2306,10 +3236,6 @@
         </member>
         <member name="T:Eco.Core.Systems.UniversalIDs">
             <summary>Management of objects with a universal id. Tracks them and allows finding by ID.</summary>
-        </member>
-        <member name="M:Eco.Core.Systems.UniversalIDs.Init">
-            <summary>Subscribe to serialization completion, so we can setup the next id after all existing ones are loaded, and ensure
-            all ID'd objects are stored in our dictionary.</summary>
         </member>
         <member name="M:Eco.Core.Systems.UniversalIDs.Load(System.Collections.Generic.IEnumerable{Eco.Core.Systems.IHasUniversalID})">
             <summary>Loads objects to <see cref="T:Eco.Core.Systems.UniversalIDs"/> storage.</summary>
@@ -2329,6 +3255,9 @@
         </member>
         <member name="M:Eco.Core.Systems.UniversalIDs.GetOrCreateID(Eco.Core.Systems.IHasUniversalID)">
             <summary> Get the ID, assigning a new one if none is set yet.</summary>
+        </member>
+        <member name="M:Eco.Core.Systems.UniversalIDs.ClaimID(Eco.Core.Systems.IHasUniversalID,System.Int32)">
+            <summary>Claims <paramref name="id"/> for <paramref name="obj"/>. Can only be used when serialized IDs loaded and if object doesn't yet have an ID.</summary>
         </member>
         <member name="M:Eco.Core.Systems.UniversalIDs.InternalCreateID(Eco.Core.Systems.IHasUniversalID)">
             <summary>Assign an ID and put it in the dictionary</summary>

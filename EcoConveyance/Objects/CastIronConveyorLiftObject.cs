@@ -28,9 +28,9 @@ namespace Eco.Mods.EcoConveyance.Objects
 		public override LocString DisplayDescription => Localizer.DoStr("Transporting crates up or down, used to transport between floors");
 		public virtual Type RepresentedItemType => typeof(CastIronConveyorLiftItem);
 
-		protected override void OnCreate()
+		protected override void OnCreatePreInitialize()
 		{
-			base.OnCreate();
+			base.OnCreatePreInitialize();
 			ConveyorVerticalComponent conveyor = this.GetComponent<ConveyorVerticalComponent>();
 			conveyor.InputDirection = new Direction[] { Direction.Up, Direction.Down };
 			conveyor.OutputDirection = new Direction[] { Direction.Up, Direction.Down };

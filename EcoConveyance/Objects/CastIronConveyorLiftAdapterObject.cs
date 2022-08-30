@@ -38,9 +38,9 @@ namespace Eco.Mods.EcoConveyance.Objects
 			});
 		}
 
-		protected override void OnCreate()
+		protected override void OnCreatePreInitialize()
 		{
-			base.OnCreate();
+			base.OnCreatePreInitialize();
 			Direction facing = DirectionExtensions.FacingDir(this.Rotation.Forward);
 			ConveyorVerticalEndComponent conveyor = this.GetComponent<ConveyorVerticalEndComponent>();
 			conveyor.InputDirection = new Direction[] { facing, Direction.Up, Direction.Down };

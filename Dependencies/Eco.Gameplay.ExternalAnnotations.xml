@@ -41,11 +41,11 @@
       <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor" />
     </parameter>
   </member>
-  <member name="T:Eco.Gameplay.Systems.Messaging.Chat.Commands.ChatSubCommandAttribute">
+  <member name="T:Eco.Gameplay.Systems.Messaging.Chat.Commands.ChatCommandAttribute">
     <attribute ctor="M:JetBrains.Annotations.MeansImplicitUseAttribute.#ctor" />
   </member>
-  <member name="T:Eco.Gameplay.Systems.Messaging.Chat.Commands.MessagingCommands">
-    <attribute ctor="M:JetBrains.Annotations.UsedImplicitlyAttribute.#ctor" />
+  <member name="T:Eco.Gameplay.Systems.Messaging.Chat.Commands.ChatSubCommandAttribute">
+    <attribute ctor="M:JetBrains.Annotations.MeansImplicitUseAttribute.#ctor" />
   </member>
   <member name="T:Eco.Gameplay.Systems.Tooltip.TooltipAttribute">
     <attribute ctor="M:JetBrains.Annotations.MeansImplicitUseAttribute.#ctor(JetBrains.Annotations.ImplicitUseTargetFlags)" />

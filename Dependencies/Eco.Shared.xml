@@ -5,9 +5,19 @@
     </assembly>
     <members>
         <member name="T:Eco.Shared.Authentication.AuthResult">
-            <summary>
-            A mirror of AuthSucceedResult and AuthFailedResult from AuthServer combined
-            </summary>
+            <summary>A mirror of AuthSucceedResult and AuthFailedResult from AuthServer combined</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.AuthResult.Valid">
+            <summary>Flag determining if this <see cref="T:Eco.Shared.Authentication.AuthResult"/> instance is valid.</summary>
+        </member>
+        <member name="M:Eco.Shared.Authentication.AuthResult.ConvertToLoginSession(System.String,System.String)">
+            <summary>Converts the <see cref="T:Eco.Shared.Authentication.AuthResult"/> instance into a <see cref="T:Eco.Shared.Authentication.LoginSession"/> instance. Primarly used by external platform based authentication.</summary>
+            <param name="authTokenType">Optional auth_token_type parameter to supply.</param>
+            <param name="authTokenId">Optional auth_token_id parameter to supply.</param>
+            <returns>Converted <see cref="T:Eco.Shared.Authentication.LoginSession"/> instance.</returns>
+        </member>
+        <member name="M:Eco.Shared.Authentication.AuthResult.ConvertToLoginSession">
+            <inheritdoc cref="M:Eco.Shared.Authentication.AuthResult.ConvertToLoginSession(System.String,System.String)"/>
         </member>
         <member name="T:Eco.Shared.Authentication.IDevAuthenticate">
             <summary>Services to authenticate by <see cref="T:Eco.Shared.Authentication.DevAuthentication"/></summary>
@@ -34,55 +44,79 @@
         <member name="T:Eco.Shared.Authentication.AccountTiers">
             <summary> Key account tiers from the accounts database. There are multiple versions of tiers so use >= to compare for a specific tier. </summary>
         </member>
+        <member name="T:Eco.Shared.Authentication.LoginSession">
+            <summary>Represents a verified/authenticated account's gameplay session.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.username">
+            <summary>Session's associated account Username</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.auth_token">
+            <summary>Session's associated authentication token type. Used to verify accounts with servers.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.login_token">
+            <summary>Used to login without requiring password (user by the client and SLG service only)</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.user_id">
+            <summary>The associated account's SLG id returned from verify.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.steam_id">
+            <summary>The associated account's Steam id returned from verify if found.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.twitch_id">
+            <summary>The associated account's Twitch id returned from verify if found.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.citizen">
+            <summary>The associated account's Citizen status. Value will represent 1 if the user is a Citizen account.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.error">
+            <summary>Login error message if any.</summary>
+        </member>
+        <member name="P:Eco.Shared.Authentication.LoginSession.Valid">
+            <summary>Flag determining if this <see cref="T:Eco.Shared.Authentication.LoginSession"/> instance is valid.</summary>
+        </member>
+        <member name="M:Eco.Shared.Authentication.LoginSession.IsSameUser(Eco.Shared.Authentication.LoginSession)">
+            <summary>Compares two <see cref="T:Eco.Shared.Authentication.LoginSession"/> instances to check if they are the same user.</summary>
+            <param name="other"><see cref="T:Eco.Shared.Authentication.LoginSession"/> to compare.</param>
+            <returns>True if the two <see cref="T:Eco.Shared.Authentication.LoginSession"/> instances refer to the same account.</returns>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.AuthenticateUserAsync(System.String,System.String)">
+            <summary>Performs a user authentication call with the Auth Server.</summary>
+            <param name="username">Username of the user being authenticated.</param>
+            <param name="passwordOrLoginToken">Password or login token of the user being authenticated.</param>
+            <returns>Tuple containing the <see cref="T:Eco.Shared.Authentication.LoginSession"/> instance and a <see cref="T:System.String"/> with any errors that occured during the HTTP request process.</returns>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.AuthenticateUser(System.String,System.String)">
+            <summary>Blocking variant of <see cref="M:Eco.Shared.Authentication.UserAuthentication.AuthenticateUserAsync(System.String,System.String)"/>. Performs a user authentication call with the Auth Server.</summary>
+            <inheritdoc cref="M:Eco.Shared.Authentication.UserAuthentication.AuthenticateUserAsync(System.String,System.String)"/>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.AuthenticatePlatformUserAsync(System.String,System.String,System.String,System.String,System.String)">
+            <summary>Performs a platform user authentication call with the Auth Server.</summary>
+            <param name="token">Platform token string to authenticate with.</param>
+            <param name="tokenId">Id of the platform token being processed.</param>
+            <param name="tokenType">Type of platform token being processed.</param>
+            <param name="username">Platform username of the user being authenticated.</param>
+            <param name="serverId">Optional server id to specify with the <see cref="M:Eco.Shared.Authentication.UserAuthentication.VerifyTokenAsync(System.String,System.String,System.String)"/> request.</param>
+            <returns>Tuple containing the <see cref="T:Eco.Shared.Authentication.LoginSession"/> instance and a <see cref="T:System.String"/> with any errors that occured during the HTTP request process.</returns>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.AuthenticatePlatformUser(System.String,System.String,System.String,System.String,System.String)">
+            <summary>Blocking variant of <see cref="M:Eco.Shared.Authentication.UserAuthentication.AuthenticatePlatformUserAsync(System.String,System.String,System.String,System.String,System.String)"/>. Performs a platform user authentication call with the Auth Server.</summary>
+            <inheritdoc cref="M:Eco.Shared.Authentication.UserAuthentication.AuthenticateUserAsync(System.String,System.String)"/>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.VerifyTokenAsync(System.String,System.String,System.String)">
+            <summary>ASYNC used on servers to verify that users are who they say they are</summary>
+            <param name="serverId"></param>
+            <param name="token"></param>
+            <param name="tokenType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Eco.Shared.Authentication.UserAuthentication.VerifyToken(System.String,System.String,System.String)">
+            <summary>Blocking varient of <see cref="M:Eco.Shared.Authentication.UserAuthentication.VerifyTokenAsync(System.String,System.String,System.String)"/>.</summary>
+            <inheritdoc cref="M:Eco.Shared.Authentication.UserAuthentication.VerifyTokenAsync(System.String,System.String,System.String)"/>
+        </member>
         <member name="T:Eco.Shared.Authentication.VoiceJoinTokenRequest">
             <summary>
             Used to group together voice paramters when requesting a token.
             </summary>
-        </member>
-        <member name="T:Eco.Shared.Blueprints.Blueprint">
-            <summary>
-            A combination of blocks to be placed or modified.
-            </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.SetValue(Eco.Shared.Math.Vector3i,System.UInt16)">
-            <summary> Set the block ID of a relative position, overwriting any existing block ID. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.RemoveValue(Eco.Shared.Math.Vector3i)">
-            <summary> Clear the block from the given position if it is set.</summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.TryGetValue(Eco.Shared.Math.Vector3i,System.UInt16@)">
-            <summary> Gets the block ID for the given position if it exists. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.Clear">
-            <summary> Clear all block IDs from the blueprint. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.GetEnumerator">
-            <summary> Gets a enumerator of all the set block IDs with their positions. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.System#Collections#IEnumerable#GetEnumerator">
-            <summary> Gets a enumerator of all the set block IDs with their positions. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.Blueprint.SetFromRangeAndBlockId(System.Collections.Generic.IEnumerable{Eco.Shared.Math.Vector3i},System.UInt16)">
-            <summary> Sets the blueprint to all the blocks of the range, relative to WorldRange.min, set to the given block ID. </summary>
-        </member>
-        <member name="T:Eco.Shared.Blueprints.BlueprintBlock">
-            <summary>
-            A block from a blueprint, consisting of a position and a block ID.
-            </summary>
-        </member>
-        <member name="T:Eco.Shared.Blueprints.BlueprintInstance">
-            <summary>
-            An instance of a blueprint in the world, given a blueprint and a world position.
-            </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.BlueprintInstance.TryGetValue(Eco.Shared.Math.Vector3i,System.UInt16@)">
-            <summary> Gets the block ID from the bluprint relative to the world position of the instance. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.BlueprintInstance.GetEnumerator">
-            <summary> Gets a enumerator of all the set block IDs with their world positions. </summary>
-        </member>
-        <member name="M:Eco.Shared.Blueprints.BlueprintInstance.System#Collections#IEnumerable#GetEnumerator">
-            <summary> Gets a enumerator of all the set block IDs with their world positions. </summary>
         </member>
         <member name="T:Eco.Shared.Collections.BatchedSet`1">
             <summary>
@@ -107,6 +141,41 @@
         </member>
         <member name="T:Eco.Shared.Collections.EquatableArray`1">
             <summary>Equatable Array is a way to create equatable version of array which may be used as Dictionary key or for other hash/equals aware collections or operations.</summary>
+        </member>
+        <member name="T:Eco.Shared.Collections.LRUCache`2">
+            <summary>
+            Fixed size cache. When overflows then removes least-recently used (LRU) items.
+            Significantly faster than classic LRU implementation on linked list (2.5 times on AddOrUpdate operation) and allocation free (0 bytes vs 72 000 bytes for 1000 inserts).
+            </summary>
+            <remarks>It isn't thread safe!</remarks>
+        </member>
+        <member name="P:Eco.Shared.Collections.LRUCache`2.Count">
+            <summary>Number of cached items.</summary>
+        </member>
+        <member name="P:Eco.Shared.Collections.LRUCache`2.Keys">
+            <summary>Collection of all keys used to store items in this cache.</summary>
+        </member>
+        <member name="P:Eco.Shared.Collections.LRUCache`2.Values">
+            <summary>All cached items.</summary>
+            <remarks>Accessing cached items via this property doesn't count as 'using' them in the context of how LRUCache works.</remarks>
+        </member>
+        <member name="M:Eco.Shared.Collections.LRUCache`2.TryGetValue(`0,`1@)">
+            <summary>Tries to get cached <paramref name="value"/> by the <paramref name="key"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.LRUCache`2.AddOrUpdate(`0,`1)">
+            <summary>Adds or updates cached <paramref name="value"/> by the <paramref name="key"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.LRUCache`2.Access(Eco.Shared.Collections.LRUCache{`0,`1}.Node@,System.Int32)">
+            <summary>Access <paramref name="node"/> at <paramref name="index"/> to mark it more recently used. After access the node moves to the head and will be last node to remove (until another <see cref="M:Eco.Shared.Collections.LRUCache`2.Access(Eco.Shared.Collections.LRUCache{`0,`1}.Node@,System.Int32)"/>).</summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.LRUCache`2.Clear">
+            <summary>Clears the cache.</summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.LRUCache`2.SetUpInsertOrder">
+            <summary>Prepare cache for inserting new entries.</summary>
+        </member>
+        <member name="T:Eco.Shared.Collections.LRUCache`2.Node">
+            <summary>Node for cache array-based linked list.</summary>
         </member>
         <member name="T:Eco.Shared.Collections.RandomAccessQueue`1">
             <summary>
@@ -179,6 +248,31 @@
         <member name="T:Eco.Shared.Collections.RandomAccessQueue`1.ReverseEnumerator">
             <summary>Reverse enumerator of <see cref="T:Eco.Shared.Collections.RandomAccessQueue`1"/>.</summary>
         </member>
+        <member name="T:Eco.Shared.Collections.SpinLockBuffer`1">
+            <summary>
+            A buffer that uses a SpinLock for locking
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.SpinLockBuffer`1.Add(`0)">
+            <summary>
+            Add an item to the internal buffer.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.SpinLockBuffer`1.FlushTo(System.Collections.Generic.List{`0})">
+            <summary>
+            Copy the contents to the given list then clear the internal buffer.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.SpinLockBuffer`1.FlushTo(System.Collections.Generic.Queue{`0})">
+            <summary>
+            Copy the contents to the given queue then clear the internal buffer.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.SpinLockBuffer`1.Clear">
+            <summary>
+            Clear the internal buffer.
+            </summary>
+        </member>
         <member name="T:Eco.Shared.Collections.UnboundedSPSCQueue`1">
             <summary>
             Unbounded Single Producer Single Consumer Queue.
@@ -187,6 +281,12 @@
             It is safe to use in multi-threaded environment as long as only one thread is consuming and only one thead is producing.
             It may lead to unpredictable results otherwise.
             </remarks>
+        </member>
+        <member name="T:Eco.Shared.Collections.UniqueQueue`1">
+            <summary>Thread-unsafe Unique Queue implementation. It only allows enqueueing unique elements. Duplicate elements are ignored.</summary>
+        </member>
+        <member name="M:Eco.Shared.Collections.UniqueQueue`1.TryEnqueue(`0)">
+            <summary>Enqueue new item. Item is ignored if already present in queue, and method returns false if that is the case.</summary>
         </member>
         <member name="T:Eco.Shared.Collections.UniqueStack`1">
             <summary> Thread-unsafe Unique Stack implementation. It only allows to put unique elements. </summary>
@@ -251,8 +351,28 @@
         <member name="M:Eco.Shared.Extensions.ReadOnlySpanExtensions.ToList``1(System.ReadOnlySpan{``0})">
             <summary>Returns new <see cref="T:System.Collections.Generic.List`1"/> containing all items from <paramref name="span"/>.</summary>
         </member>
-        <member name="T:Eco.Shared.Gameplay.MapEntryOverlay">
-            Basic implementation for IEntryOverlay. Used to sent/recieve data at map edit request
+        <member name="T:Eco.Shared.Gameplay.EditableOverlay">
+            Basic implementation for IEntryOverlay. Used to sent/recieve data at map edit request.
+            Note that this type is not a controller, but will be sent back and forth between both client and server, IE the client can edit it and send it back.
+            For example, when a user requests to edit an overlay, the client will send this structure to the server after the edit, containing the changes. 
+        </member>
+        <member name="T:Eco.Shared.Gameplay.IListEntryObject">
+            <summary> Used for objects that can be represented on client by ListEntry, to populate AutoUIListContainer. </summary>
+        </member>
+        <member name="T:Eco.Shared.Gameplay.AvatarCustomizationData">
+            <summary> Customization data for a player's avatar. Used to set up starting appearance. </summary>
+            <remarks> Created by the player from the client and sent to the server on first Login.  </remarks>
+        </member>
+        <member name="T:Eco.Shared.Gameplay.ClothingSlotData">
+            <summary> Data that represents an avatar's clothing slot. </summary>
+            <remarks> Is consisted by the name and the color of the equipped item. </remarks>
+        </member>
+        <member name="P:Eco.Shared.Gameplay.ClothingSlotData.Name">
+            <summary> For Client, this is the name of the asset, while for Server this is the item's Type. </summary>
+            <remarks> Can be null or empty if the slot isn't filled. </remarks>
+        </member>
+        <member name="T:Eco.Shared.Gameplay.ClothingSlots">
+            <summary> Pretty much an enum, but with a property that returns all slots in a list. </summary>
         </member>
         <member name="M:Eco.Shared.IoC.ServiceHolder`1.CreateAndReplace``1">
             <summary> Creates new instance of <typeparamref name="TImpl"/> and replaces <see cref="F:Eco.Shared.IoC.ServiceHolder`1.Obj"/> with new value. </summary>
@@ -284,6 +404,9 @@
         <member name="P:Eco.Shared.Items.InteractionInfo.Distance">
             <summary> Distance to the interaction target. </summary>
         </member>
+        <member name="P:Eco.Shared.Items.InteractionInfo.IsAirInteraction">
+            <summary>Interact without a target is considered air interaction aka dropping block off a cliff. When true, Block Position is the position down the cliff.</summary>
+        </member>
         <member name="P:Eco.Shared.Items.InteractionInfo.Position">
             <summary> When TargetObject is not null, the position the interaction ray intersected with the target object. </summary>
         </member>
@@ -311,8 +434,108 @@
         <member name="F:Eco.Shared.Items.ItemInfo.HighlightBlockIDs">
             <summary> For IInteractingItems, the block IDs that will get highlighted. </summary>
         </member>
+        <member name="M:Eco.Shared.Items.ItemInfo.TryGetWorldObjectName">
+            <summary> Strip "Item" off the name and replace with Object </summary>
+        </member>
+        <member name="T:Eco.Shared.Items.TiedElectionOptions">
+            Target hand value for tool/object
+        </member>
+        <member name="T:Eco.Shared.Items.CacheAs">
+            <summary>Defines different caching modes tooltip part can use.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.CacheAs.Disabled">
+            <summary>Disable caching for tooltip part entirely (on server and on client).</summary>
+            <remarks>When this flag is set all other flags should not be used.</remarks>
+        </member>
+        <member name="F:Eco.Shared.Items.CacheAs.Instance">
+            <summary>Cache tooltip part for every instance of a type individually.</summary>
+            <remarks>Can be combined with <see cref="F:Eco.Shared.Items.CacheAs.User"/> flag to also disable server-side cache.</remarks>
+        </member>
+        <member name="F:Eco.Shared.Items.CacheAs.User">
+            <summary>Cache tooltip part for every user individually.</summary>
+            <remarks>Disables caching for tooltip part on server causing it to only be cached on client.</remarks>
+        </member>
+        <member name="F:Eco.Shared.Items.CacheAs.Global">
+            <summary>Create only one cache entry for tooltip part and use it for all instances and users.</summary>
+            <remarks>When this flag is set all other flags should not be used.</remarks>
+        </member>
+        <member name="F:Eco.Shared.Items.CacheAs.SubType">
+            <summary>Create separate cache entry for every type derived from the type that defines tooltip part and share those entries among instances of their respective types.</summary>
+            <remarks>Can be combined with <see cref="F:Eco.Shared.Items.CacheAs.User"/> flag to also disable server-side cache.</remarks>
+        </member>
+        <member name="T:Eco.Shared.Items.SettlementType">
+            <summary>Wrapper for working with SettlementType Tier, provides easy access methods like getting children/parents and Display name</summary>
+        </member>
+        <member name="P:Eco.Shared.Items.SettlementType.All">
+            <summary>Returns each settlement type avaialble.</summary>
+        </member>
+        <member name="P:Eco.Shared.Items.SettlementType.DisplayName">
+            <Returns>Localized name taken from SettlementConfig.SettlementTypes based on the Tier</Returns>
+        </member>
+        <member name="M:Eco.Shared.Items.SettlementType.GetChild">
+            <Returns>SettlementType of 1 tier lower if this settlement can have a child settlement I.E is not of first tier, otherwise null</Returns>
+        </member>
+        <member name="M:Eco.Shared.Items.SettlementType.GetParent">
+            <Returns>SettlementType of 1 tier higher if this settlement can have parent settlement I.E is not of final tier, otherwise null</Returns>
+        </member>
+        <member name="T:Eco.Shared.Items.InitialData">
+            <summary>Container for various data types that can be retrieved from the client on user login, managed by CachedPlayerDataUtil.cs on client</summary>
+        </member>
+        <member name="T:Eco.Shared.Items.TooltipPartCacheKey">
+            <summary>
+            Servers as a key for lookup in tooltip part cache on both server and client.
+            Given this key, cached content of a tooltip part can be retrieved from cache, if it is present.
+            </summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipPartCacheKey.PartId">
+            <summary>ControllerID of tooltip part.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipPartCacheKey.ViewId">
+            <summary>ControllerID of view for which tooltip part content was generated or 0, depending on the cache mode used.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipPartCacheKey.Origin">
+            <summary><see cref="T:Eco.Shared.Items.TooltipOrigin"/> for which tooltip part content was generated.</summary>
+        </member>
+        <member name="M:Eco.Shared.Items.TooltipPartCacheKey.#ctor(System.Int32,System.Int32,Eco.Shared.Items.TooltipOrigin)">
+            <param name="partId">ControllerID of tooltip part.</param>
+            <param name="viewId">ControllerID of view for which tooltip part content was generated or 0, depending on the cache mode used.</param>
+            <param name="origin"><see cref="T:Eco.Shared.Items.TooltipOrigin"/> for which tooltip part content was generated.></param>
+        </member>
+        <member name="T:Eco.Shared.Items.TooltipPartServerRequest">
+            <summary>Represents a request for a single tooltip part's content.</summary>
+        </member>
+        <member name="T:Eco.Shared.Items.TooltipServerRequest">
+            <summary>Represents a request for contents of several tooltip parts.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerRequest.MainTargetControllerID">
+            <summary>If request is sent because tooltip is being opened for some specific view this should contain this view's ControllerID. Otherwise should be 0.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerRequest.MainTargetTypeID">
+            <summary>If request is sent because tooltip is being opened for some specific view this should contain this view type's ID. Otherwise should be 0.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerRequest.PartRequests">
+            <summary>Requests for specific tooltip parts.</summary>
+        </member>
+        <member name="T:Eco.Shared.Items.TooltipServerResponse">
+            <summary>Packs data server sends to client in response to <see cref="T:Eco.Shared.Items.TooltipServerRequest"/></summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerResponse.ErrorTitle">
+            <summary>If tooltip content can't be generated this error should be displayed as title instead.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerResponse.ErrorMessage">
+            <summary>If tooltip content can't be generated this error message should be displayed as tooltip content instead.</summary>
+        </member>
+        <member name="F:Eco.Shared.Items.TooltipServerResponse.Parts">
+            <summary>Contents of requested tooltip parts.</summary>
+        </member>
+        <member name="P:Eco.Shared.Items.TooltipServerResponse.IsSuccess">
+            <summary>Returns false if tooltip content couldn't be generated.</summary>
+        </member>
         <member name="T:Eco.Shared.Items.TTCat">
-            <summary> Categories of tooltips.</summary>
+            <summary>Categories of tooltips.</summary>
+        </member>
+        <member name="T:Eco.Shared.Items.ButtonFlags">
+            <summary>Flags for defining a button state in the UI.</summary>
         </member>
         <member name="T:Eco.Shared.Items.TutorialFlag">
             <summary> Shared with the client to indicate when an RPCs (tutorial related) is needed </summary>
@@ -354,6 +577,9 @@
             Can also be manually added to any enum to override the default behaviour when casting to a string.
             </summary>
         </member>
+        <member name="M:Eco.Shared.Localization.Localizer.DoLineList(System.FormattableString[])">
+            <summary>Accepts a variable number of formattable strings, localzing them as lines and appending them.</summary>
+        </member>
         <member name="M:Eco.Shared.Localization.Localizer.StyledPluralUnsigned(System.String,System.Single)">
             <summary> Styles originally negative numbers in red (negative style) while removing the negative sign from the output.</summary>
         </member>
@@ -375,6 +601,12 @@
         </member>
         <member name="M:Eco.Shared.Localization.Localizer.GetIndefiniteArticle(System.String)">
             <summary> Returns "a" or "an" depending on some common English rules</summary>
+        </member>
+        <member name="M:Eco.Shared.Localization.TextLoc.ControlsLoc(System.String,System.String,System.String)">
+            <summary>Creates <see cref="T:Eco.Shared.Localization.LocString"/> from <paramref name="text"/> surrounded with <paramref name="prefix"/> and <paramref name="suffix"/>. I.e. <c>ControlsLoc($"Click {buttonName}", "[", "]")</c> same as <c>Localizer.Do("Click {buttonName}").Wrap("[", "]").Style(Text.Styles.Controls)</c>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Localization.TextLoc.ControlsLocStr(System.String,System.String,System.String)">
+            <summary>Creates <see cref="T:Eco.Shared.Localization.LocString"/> from <paramref name="text"/> surrounded with <paramref name="prefix"/> and <paramref name="suffix"/>. I.e. <c>ControlsLocStr("Click here", "[", "]")</c> same as <c>Localizer.DoStr("Click here").Wrap("[", "]").Style(Text.Styles.Controls)</c>.</summary>
         </member>
         <member name="M:Eco.Shared.Localization.TextLoc.Table(System.Collections.Generic.IEnumerable{System.Collections.Generic.IEnumerable{Eco.Shared.Localization.LocString}})">
             <summary> Creates localized text table with tags from 2D LocString IEnumerable </summary>
@@ -468,6 +700,15 @@
         <member name="M:Eco.Shared.Localization.LocExtensions.InsertLineLoc(Eco.Shared.Localization.LocStringBuilder,System.FormattableString)">
             <summary> Inserts the line at the beginning of the builder. </summary>
         </member>
+        <member name="M:Eco.Shared.Localization.LocExtensions.CropUntilLengthIfNeeded(Eco.Shared.Localization.LocStringBuilder,System.Int32)">
+            <summary>Crops LocStringBuilder to given maxLength.</summary>
+            <remarks>If the LocString is shorter than maxLength returns same LocString.</remarks>
+        </member>
+        <member name="M:Eco.Shared.Localization.LocExtensions.AppendStringWhileRespectingMaxLength(Eco.Shared.Localization.LocStringBuilder,Eco.Shared.Localization.LocString,System.Int32,System.Boolean)">
+            <summary>Append a LocString respecting length limit.</summary>
+            <remarks>Crops first LocString if the length exceeds limit and appends second.
+            Has an option to include space in between.</remarks>
+        </member>
         <member name="P:Eco.Shared.Localization.LocString.NotTranslated">
             <summary>Returns not translated string. If <see cref="T:System.FormattableString"/> was used then it will be resolved to string.</summary>
         </member>
@@ -500,6 +741,9 @@
         </member>
         <member name="T:Eco.Shared.Localization.MissingString">
             <summary> class is used to register missing localization strings /// </summary>
+        </member>
+        <member name="T:Eco.Shared.Localization.SharedLocs">
+            <summary>Shared localization strings.</summary>
         </member>
         <member name="T:Eco.Shared.Localization.StringLocalizedData">
             <summary> Class used by LocalizationAssemblyParser to hold data intended for localization. </summary>
@@ -615,6 +859,18 @@
             <code>FloorToInt(0.99f, 0.001f) // 0</code>
             <code>FloorToInt(0.999f, 0.001f) // 1</code>
             </sample>
+        </member>
+        <member name="M:Eco.Shared.Math.Directions.FacingRotationsArea(Eco.Shared.Math.DirectionAxisHorizontal)">
+            <summary> Returns list of facing rotations from player facing area (player's left, facing and right sides) </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.DirectionExtensions.DirectionsArea(Eco.Shared.Math.DirectionAxisHorizontal)">
+            <summary> Returns player facing directions area (player's left, facing and right sides) </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.DirectionExtensions.Rotate90(Eco.Shared.Math.DirectionAxisHorizontal)">
+            <summary> Returns player Direction Axis Horizontal in the clockwise rotation </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.DirectionExtensions.RotateNeg90(Eco.Shared.Math.DirectionAxisHorizontal)">
+            <summary> Returns the horizontal player direction axis counterclockwise rotation </summary>
         </member>
         <member name="M:Eco.Shared.Math.DirectionExtensions.ToVec2i(Eco.Shared.Math.Direction2D)">
             <summary>Converts the direction into a Vector2i</summary>
@@ -803,29 +1059,44 @@
         <member name="M:Eco.Shared.Math.Vector2i.XYIterInclusive(System.Int32,System.Int32)">
             Iterate over a range (inclusive) 
         </member>
-        <member name="M:Eco.Shared.Math.Vector3.NormalizeSafe(Eco.Shared.Math.Vector3)">
+        <member name="M:Eco.Shared.Math.SVector3.NormalizeSafe(Eco.Shared.Math.SVector3)">
             <summary> Returns normalized version of vector (by dividing each component on vector length), but returns <paramref name="defaultValue"/> in case if length is zero to avoid producing NaN vector. </summary>
         </member>
-        <member name="M:Eco.Shared.Math.Vector3.AngleRad(Eco.Shared.Math.Vector3)">
+        <member name="M:Eco.Shared.Math.SVector3.AngleRad(Eco.Shared.Math.SVector3)">
             <summary> Returns angle between two in degs.</summary>
         </member>
-        <member name="P:Eco.Shared.Math.Vector3.Round">
+        <member name="P:Eco.Shared.Math.SVector3.Round">
             <summary>
             Uses default rounding rules (bank rounding, or round to closest even in case of tie).
             I.e. 0.5 -> 0, but 1.5 -> 2.
             </summary>
         </member>
-        <member name="P:Eco.Shared.Math.Vector3.RoundUp">
+        <member name="P:Eco.Shared.Math.SVector3.RoundUp">
             <summary>
             Always rounds to closes greater number. Preferred way of rounding for coordinates, because voxel coordinates always shifted down.
             I.e. 0.5 -> 1, 1.5 -> 2 and -1.5 -> -1.
             </summary>
         </member>
-        <member name="M:Eco.Shared.Math.Vector3.XZWrappedDirectionalVector(Eco.Shared.Math.Vector3@,Eco.Shared.Math.Vector3@,Eco.Shared.Math.Vector3@)">
+        <member name="M:Eco.Shared.Math.SVector3.XZWrappedDirectionalVector(Eco.Shared.Math.SVector3@,Eco.Shared.Math.SVector3@,Eco.Shared.Math.SVector3@)">
             <summary>Returns directional difference vector wrapped in <paramref name="size"/> (i.e. WrappedVoxelSize, WrappedChunkSize or WrappedPlotSize).</summary>
         </member>
-        <member name="M:Eco.Shared.Math.Vector3.XZWrappedDirectionalVector(Eco.Shared.Math.Vector3@,Eco.Shared.Math.Vector3@)">
+        <member name="T:Eco.Shared.Math.Vector3Extensions">
+            <summary>Extension methods for <see cref="T:System.Numerics.Vector3"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Math.Vector3Extensions.XZWrappedDirectionalVector(System.Numerics.Vector3@,System.Numerics.Vector3@,System.Numerics.Vector3@)">
+            <summary>Returns directional difference vector wrapped in <paramref name="size"/> (i.e. WrappedVoxelSize, WrappedChunkSize or WrappedPlotSize).</summary>
+        </member>
+        <member name="M:Eco.Shared.Math.Vector3Extensions.XZWrappedDirectionalVector(System.Numerics.Vector3@,System.Numerics.Vector3@)">
             <summary>Wraps a true 'vector' (which is now meaningless so we need a long name, points in the shortest direction after accounting for world wrapping).</summary>
+        </member>
+        <member name="M:Eco.Shared.Math.Vector3Extensions.RoundUp(System.Numerics.Vector3)">
+            <summary>
+            Always rounds to closes greater number. Preferred way of rounding for coordinates, because voxel coordinates always shifted down.
+            I.e. 0.5 -> 1, 1.5 -> 2 and -1.5 -> -1.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.Vector3Extensions.AngleRad(System.Numerics.Vector3,System.Numerics.Vector3)">
+            <summary> Returns angle between two in degs.</summary>
         </member>
         <member name="M:Eco.Shared.Math.Vector3i.AddY(System.Int32)">
             <summary>Returns new <see cref="T:Eco.Shared.Math.Vector3i"/> with <see cref="P:Eco.Shared.Math.Vector3i.Y"/> component with added <paramref name="deltaY"/>. You can use negative <paramref name="deltaY"/> to subtract value.</summary>
@@ -842,6 +1113,9 @@
         <member name="M:Eco.Shared.Math.Vector3i.MaxAxis">
             <summary> Return the largest axis, breaking ties arbitrarily. </summary>
         </member>
+        <member name="T:Eco.Shared.Math.Vector3Utils">
+            <summary>Helper methods for System.Numerics.Vector3. Server now remaps System.Numerics.Vector3 to UnityEngine.Vector3 using Fody. More information in the Eco.Fody project Fody.md</summary>
+        </member>
         <member name="M:Eco.Shared.Math.VectorUtils.MoveAndRotate(System.Collections.Generic.IEnumerable{Eco.Shared.Math.Vector3i},Eco.Shared.Math.Vector3i,Eco.Shared.Math.Quaternion)">
             <summary> Returns distinct collection of vectors form the area that were shifted and rotated according to provided params. </summary>
         </member>
@@ -853,6 +1127,12 @@
         </member>
         <member name="M:Eco.Shared.Math.VectorUtils.Average(System.Collections.Generic.IEnumerable{Eco.Shared.Math.Vector3i})">
             <summary> Average position, or zero's if none in list. </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.VectorUtils.ParseVector2(System.String)">
+            <summary> Parses Vector2 string representation to <see cref="T:Eco.Shared.Math.Vector2"/> value. </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.VectorUtils.ParseVector3(System.String)">
+            <summary> Parses Vector3 string representation to <see cref="T:System.Numerics.Vector3"/> value. </summary>
         </member>
         <member name="M:Eco.Shared.Math.WorldArea.WrappedAreas(Eco.Shared.Math.Vector2i)">
             <summary>Enumerates wrapped areas in <paramref name="size"/>. There may be more than one area if <see cref="T:Eco.Shared.Math.WorldArea"/> crossing the border. It assumes that <see cref="F:Eco.Shared.Math.WorldArea.MinInclusive"/> never less than -size for optimization purposes.</summary>
@@ -888,6 +1168,9 @@
         <member name="P:Eco.Shared.Math.WorldRange.SizeInc">
             <summary> The size including the maximum position. </summary>
         </member>
+        <member name="M:Eco.Shared.Math.WorldRange.#ctor(System.Collections.Generic.IEnumerable{Eco.Shared.Math.Vector3i})">
+            <summary>Creates a World Range that contains a list of Vector3i</summary>
+        </member>
         <member name="P:Eco.Shared.Math.WorldRange.Invalid">
             <summary> A range where IsValid() will return false. </summary>
         </member>
@@ -895,7 +1178,7 @@
             <summary> A range around 0,0,0 with 0 dimentions. </summary>
         </member>
         <member name="M:Eco.Shared.Math.WorldRange.Translate(Eco.Shared.Math.Vector3i)">
-            <summary>Create a new world range translated by the given direction.</summary>
+            <summary>Shift world range by the given delta.</summary>
         </member>
         <member name="M:Eco.Shared.Math.WorldRange.ExpandMax(Eco.Shared.Math.Vector3i)">
             <summary>Expands the maximum value by <paramref name="delta"/>. Useful for converting from an inclusive world range to an exclusive one.</summary>
@@ -928,6 +1211,22 @@
         <member name="M:Eco.Shared.Math.WorldRange.Corners">
             <summary>
             Returns enumerable with all corners of this <see cref="T:Eco.Shared.Math.WorldRange"/>
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.WorldRange.ExtendToInclude(Eco.Shared.Math.Vector3i)">
+            <summary>Result will be in [inclusive;exclusive) format</summary>
+        </member>
+        <member name="M:Eco.Shared.Math.WorldRange.IntersectsWrapped(Eco.Shared.Math.WorldRange,Eco.Shared.Math.Vector3i)">
+            <summary>
+            Checks if current current range intersects with another range in a wrapped space. Based loosely on the implementation of <see cref="M:Eco.Shared.Math.WorldRange.Intersects(Eco.Shared.Math.WorldRange)"/> 
+            It makes sure to convert the ranges to a wrapped world space.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Math.WorldRange.GetWorldRangeWithWrappedMin(Eco.Shared.Math.Vector3i)">
+            <summary>
+            Returns the wrapped version of the current range, making sure that the min point is in wrapped space while the end point may get out of wrapped size boundaries
+            Since manually wrapping each component may result in an invalid range, we make sure to find an appropiate max position so that the range is always valid.
+            [Any valid range] -> [Wrapped min range)]
             </summary>
         </member>
         <member name="T:Eco.Shared.Math.WrappedWorldPosition3">
@@ -999,6 +1298,25 @@
         <member name="M:Eco.Shared.Math.Route.FindPathSegmentIndexAtTime(System.Single,System.Int32)">
             <summary>Finds <see cref="T:Eco.Shared.Math.PathSegment"/> index covering <paramref name="time"/> starting at path segment with index <paramref name="start"/>.</summary>
         </member>
+        <member name="T:Eco.Shared.Networking.Auth.AdminAwareRPCAuthorizer">
+            <summary><see cref="T:Eco.Shared.Networking.Auth.AdminAwareRPCAuthorizer"/> wraps another <see cref="T:Eco.Shared.Networking.Auth.IRPCAuthorizer"/> and adds special case for admin access. Auto-passes auth check if observer is admin.</summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer">
+            <summary><see cref="T:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer"/> uses <see cref="F:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer.attribute"/> for auth checks for target before wrapped <see cref="F:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer.authorizer"/> check. In addition to <see cref="F:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer.accessType"/> it passes <see cref="F:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer.attribute"/> for custom checks.</summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.Auth.DefaultRPCAuthorizer">
+            <summary><see cref="T:Eco.Shared.Networking.Auth.DefaultRPCAuthorizer"/> uses target as <see cref="T:Eco.Shared.Networking.IWorldObserverAuthorizer"/> for auth checks. If target isn't <see cref="T:Eco.Shared.Networking.IWorldObserverAuthorizer"/> then returns true.</summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.Auth.IRPCAuthorizer">
+            <summary><see cref="T:Eco.Shared.Networking.Auth.IRPCAuthorizer"/> used by <see cref="T:Eco.Shared.Networking.RPCMethod"/> for RPC calls authorization. Auto-constructed from attributes on RPC method member. May be <see cref="T:Eco.Shared.Networking.Auth.AttributeAwareRPCAuthorizer"/>, <see cref="T:Eco.Shared.Networking.Auth.AdminAwareRPCAuthorizer"/>, or <see cref="T:Eco.Shared.Networking.Auth.DefaultRPCAuthorizer"/>.</summary>
+            <remarks>See also: <seealso cref="T:Eco.Shared.Networking.IWorldObserverAuthorizer"/></remarks>
+        </member>
+        <member name="T:Eco.Shared.Networking.Auth.RPCAuthAttribute">
+            <summary>Base class for RPC auth check attributes. Such an attribute have to implement <see cref="M:Eco.Shared.Networking.Auth.RPCAuthAttribute.IsAuthorized(System.Object,Eco.Shared.Networking.IWorldObserver,Eco.Shared.Items.AccessType)"/> method which will check auth <b>in addition</b> to main auth check on target object itself.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Auth.RPCAuthAttribute.IsAuthorized(System.Object,Eco.Shared.Networking.IWorldObserver,Eco.Shared.Items.AccessType)">
+            <summary>Checks if RCP authorized on <paramref name="target"/> performed by <paramref name="observer"/> for <paramref name="accessType"/>.</summary>
+        </member>
         <member name="T:Eco.Shared.Networking.ClientUpdate">
             <summary>
             Contains data for <see cref="F:Eco.Shared.Networking.NetworkEvent.ClientUpdate"/> events.
@@ -1011,6 +1329,18 @@
         </member>
         <member name="M:Eco.Shared.Networking.ClientUpdate.AddToData(System.String,Eco.Shared.Serialization.BSONArray@)">
             <summary>Adds <paramref name="bson"/> to <see cref="F:Eco.Shared.Networking.ClientUpdate.data"/> with <paramref name="keyName"/> as key and replaces <paramref name="bson"/> with empty array.</summary>
+        </member>
+        <member name="F:Eco.Shared.Networking.Constants.PlayEcoWebsiteAddress">
+            <summary>play.eco website address. Should match the base branch being used (develop/staging/release)</summary>
+        </member>
+        <member name="F:Eco.Shared.Networking.Constants.PlayEcoTwitchLinkAddress">
+            <summary>play.eco Twitch account linking address. Based on the branch matching play.eco website url set at <see cref="F:Eco.Shared.Networking.Constants.PlayEcoWebsiteAddress"/>.</summary>
+        </member>
+        <member name="F:Eco.Shared.Networking.Constants.PlayEcoTwitchLinkPollAddress">
+            <summary>play.eco Twitch account linking poll address. Based on the branch matching play.eco website url set at <see cref="F:Eco.Shared.Networking.Constants.PlayEcoWebsiteAddress"/>.</summary>
+        </member>
+        <member name="F:Eco.Shared.Networking.Constants.MasterServerRestApiUrl">
+            <summary>REST API url of Master Server for server listing.</summary>
         </member>
         <member name="T:Eco.Shared.Networking.EcoAttribute">
             <summary>
@@ -1038,7 +1368,7 @@
             <summary> Mark a property as able to refernce any state of Proposablew. </summary>
         </member>
         <member name="T:Eco.Shared.Networking.RPCAttribute">
-            <summary> Creates an RPC that can be called on the client. </summary>
+            <summary> Creates an RPC that can be called on the client. See <strong>RPCAuthorization.md</strong> for details.</summary>
         </member>
         <member name="T:Eco.Shared.Networking.ClientAPIAttribute">
             <summary>Marks method or class with all it's members as Client API. It prevents it marked as unused and adds semantic about use cases.</summary>
@@ -1058,6 +1388,9 @@
         <member name="T:Eco.Shared.Networking.ProfanityPropertyAttribute">
             <summary> Filter profanity RPC properties and parameters by replacing with some specific property </summary>
         </member>
+        <member name="M:Eco.Shared.Networking.SharedAttributeExtensions.GetRequiredRPCAccess(System.Reflection.MemberInfo,Eco.Shared.Items.AccessType)">
+            <summary>Returns <see cref="T:Eco.Shared.Items.AccessType"/> required for <see cref="T:Eco.Shared.Networking.RPCInvocation"/>. Checks attributes and uses <paramref name="defaultRequiredAccess"/> if can't retrieve it from attributes.</summary>
+        </member>
         <member name="T:Eco.Shared.Networking.KeepIconAttribute">
             <summary> 
             Keep class icon when using as property for GameValue instead of context icon. 
@@ -1075,6 +1408,13 @@
         </member>
         <member name="M:Eco.Shared.Networking.CustomIconOnTypeTooltipAttribute.#ctor(System.Type)">
             <param name="type"> Type to inherit the icon from. </param>
+        </member>
+        <member name="T:Eco.Shared.Networking.RelatedFeatureAttribute">
+            <summary>Used to highlight that the class/member is dependant on one of the features and hide/show it from client</summary>
+            <remarks>Note: Name of the feature must be the exactly the same as in Eco.Gameplay.Systems.FeatureConfig</remarks>
+        </member>
+        <member name="T:Eco.Shared.Networking.ForceAotHint">
+            <summary>Used to force add a specific class/struct to AoTHints in ViewAutogen on the client, see AutoGenViews.cs for more details.</summary>
         </member>
         <member name="T:Eco.Shared.Networking.ExtendedServerInfo">
             <summary>Subclass of <see cref="T:Eco.Shared.Networking.ServerInfo"/> with additional properties provided only by Master Server and not published by server with <see cref="T:Eco.Shared.Networking.ServerInfo"/> to keep payload size as small as possible (to avoid problems with UDP packet size limits).</summary>
@@ -1144,6 +1484,18 @@
             for adding/removing <seealso cref="T:Eco.Shared.Networking.INetworkInterceptor"/> instances.
             </para>
             </summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.IRPCMethodHandler">
+            <summary>Custom RPC find method handler, for unity side to route RPCs to corresponding components instead of the NetObjComponent.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.IRPCMethodHandler.GetSubObjects">
+            <summary>Returns candidate sub objects to invoke RPC on (if the object itself doesn't have the RPC).</summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.IWorldObserverAuthorizer">
+            <summary><see cref="T:Eco.Shared.Networking.IWorldObserverAuthorizer"/> interface should be implemented by objects which may be checked for authorization for network clients (i.e RPC calls).</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.IWorldObserverAuthorizer.IsAuthorized(Eco.Shared.Networking.IWorldObserver,Eco.Shared.Items.AccessType)">
+            <summary>Checks if <paramref name="observer"/> authorized for access of type <paramref name="accessType"/> on an object implementing the interface.</summary>
         </member>
         <member name="M:Eco.Shared.Networking.NetObject.SendEventNow(Eco.Shared.Networking.NetworkEvent,Eco.Shared.Serialization.BSONObject,Eco.Shared.Networking.INetClient)">
             <summary>Sends event immediately if possible ignoring previously queued messages. As side effect it makes encoding in current thread instead of network thread.</summary>
@@ -1229,7 +1581,7 @@
         <member name="M:Eco.Shared.Networking.NetMessage.SendPacket(Eco.Shared.Networking.Udp.IUdpPeer,Eco.Shared.Networking.NetworkEvent,Eco.Shared.Serialization.BSONObject,System.Collections.Generic.IEnumerable{System.Object})">
             <summary> Encodes <paramref name="payload"/> and sends <paramref name="netEvent"/> with it's data to all <paramref name="connections"/> (may be obtained from <see cref="E:Eco.Shared.Networking.Udp.IUdpPeer.Connected"/>). </summary>
         </member>
-        <member name="M:Eco.Shared.Networking.NetMessage.DoWithDisconnectReason``1(System.String,``0,System.Boolean,System.Action{``0,Eco.Shared.Networking.NetworkEvent,Eco.Shared.Serialization.BSONObject})">
+        <member name="M:Eco.Shared.Networking.NetMessage.DoWithDisconnectReason``1(System.String,``0,System.Boolean,System.Action{``0,Eco.Shared.Networking.NetworkEvent,Eco.Shared.Serialization.BSONObject},System.Int32)">
             <summary> Invokes <paramref name="action"/> with pre-constructed disconnect message object. </summary>
         </member>
         <member name="M:Eco.Shared.Networking.NetworkUtils.TryResolve(System.String,System.Net.IPAddress@)">
@@ -1237,6 +1589,12 @@
             Resolves IP address or host name to IPAddress object.
             If '*' used then it will auto-discovery remote address using https://www.ipify.org/.
             </summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.NetworkUtils.GetOperationalNetworkInterfaceProperties">
+            <summary>Returns <see cref="T:System.Net.NetworkInformation.IPInterfaceProperties"/> for operational network interfaces (either up or unknown status).</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.NetworkUtils.V4OrV6(System.Collections.Generic.IEnumerable{System.Net.IPAddress})">
+            <summary>Filters <paramref name="addresses"/> to include only IPv4 and IPv6 addresses.</summary>
         </member>
         <member name="F:Eco.Shared.Networking.RelayClient.RelayServerAddresses">
             <value>Remote address list for official relay servers.</value>
@@ -1257,6 +1615,9 @@
             <param name="serverId">expected server id.</param>
             <param name="connectionEndPoint">output parameter for connection end point.</param>
         </member>
+        <member name="T:Eco.Shared.Networking.RPCInfo">
+            <summary><see cref="T:Eco.Shared.Networking.RPCInfo"/> contains identifying information for RPC method. The method may be called by name or by Id (usually faster and may be only way to call overloaded RPC methods). This info shared with client.</summary>
+        </member>
         <member name="T:Eco.Shared.Networking.RPCInvocation">
             <summary>
             Contains information about <see cref="T:Eco.Shared.Networking.RPCMethod"/> invocation including method itself, target and prepared args.
@@ -1266,14 +1627,23 @@
         <member name="M:Eco.Shared.Networking.RPCInvocation.#ctor(Eco.Shared.Networking.RPCMethod,System.Object,System.Int32)">
             <summary>Creates <see cref="T:Eco.Shared.Networking.RPCInvocation"/> from method and target with null args. These args may be then set to required values with <see cref="P:Eco.Shared.Networking.RPCInvocation.Args"/> span accessor.</summary>
         </member>
+        <member name="M:Eco.Shared.Networking.RPCInvocation.HasAccess(Eco.Shared.Networking.INetClient)">
+            <summary>Checks if <paramref name="client"/> has required access to make the invocation.</summary>
+        </member>
         <member name="M:Eco.Shared.Networking.RPCInvocation.Invoke">
             <summary>Performs the call.</summary>
         </member>
         <member name="M:Eco.Shared.Networking.RPCInvocation.Dispose">
             <summary>Returns rented args array back to cache (for reusing arrays and reducing memory allocations).</summary>
         </member>
+        <member name="T:Eco.Shared.Networking.RPCManager">
+            <summary>Manager responsible for RPC lookup and invocation.</summary>
+        </member>
         <member name="M:Eco.Shared.Networking.RPCManager.CreateRPCPayload(Eco.Shared.Networking.INetClient,Eco.Shared.Networking.INetObject,System.String,System.Object[])">
             <summary>Creates RPC payload to be used with <see cref="M:Eco.Shared.Networking.NetObject.SendEvent(Eco.Shared.Networking.NetworkEvent,Eco.Shared.Serialization.BSONObject,Eco.Shared.Networking.INetClient,Eco.Shared.Networking.INetObject)"/> with <see cref="F:Eco.Shared.Networking.NetworkEvent.RPC"/> event.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.RPCManager.Invoke(Eco.Shared.Networking.INetClient,Eco.Shared.Networking.RPCInvocation)">
+            <summary>Invokes <paramref name="invocation"/> with access permissions check.</summary>
         </member>
         <member name="M:Eco.Shared.Networking.RPCManager.TryCreateInvocation``1(Eco.Shared.Networking.INetClient,System.Object,System.String,System.Collections.Generic.IList{``0},System.Func{``0,System.Type,System.Object},Eco.Shared.Networking.RPCInvocation@)">
             <summary>
@@ -1295,6 +1665,15 @@
         </member>
         <member name="M:Eco.Shared.Networking.RPCManager.FromObjArg(System.Object,System.Type)">
             <summary>Converts <paramref name="arg"/> to <paramref name="targetType"/>. For now just returns arg, but this logic may be improved with smart casts.</summary>
+        </member>
+        <member name="T:Eco.Shared.Networking.RPCMethod">
+            <summary><see cref="T:Eco.Shared.Networking.RPCMethod"/> contains all meta information about RPC method like name, flags, required arguments, required access etc.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.RPCMethod.GetRPCAuthorizer(System.Reflection.MemberInfo,Eco.Shared.Items.AccessType)">
+            <summary>
+            Returns <see cref="T:Eco.Shared.Networking.Auth.IRPCAuthorizer"/> for <paramref name="member"/>. If required access type not provided via attribute then uses <paramref name="defaultRequiredAccess"/>.
+            It also checks if member has attributes of type <see cref="T:Eco.Shared.Networking.Auth.RPCAuthAttribute"/> interface and then uses attribute based auth check before passing to <see cref="T:Eco.Shared.Networking.IWorldObserverAuthorizer"/>.
+            </summary>
         </member>
         <member name="T:Eco.Shared.Networking.RPCMethodFlags">
             <summary>Important flags for <see cref="T:Eco.Shared.Networking.RPCMethod"/>.</summary>
@@ -1323,6 +1702,15 @@
             Interface for Upd client.
             It contains client specific methods and properties (like <see cref="P:Eco.Shared.Networking.Udp.IUdpClient.ConnectionStatus"/> or <see cref="M:Eco.Shared.Networking.Udp.IUdpClient.Disconnect"/>).
             </summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Udp.IUdpClient.Disconnect">
+            <summary>Disconnects client from server peer.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Udp.IUdpClient.GetStats">
+            <summary>Returns network stats like how much bytes sent and received. <see cref="T:Eco.Shared.Networking.NetStats"/> for more details.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Udp.IUdpClient.SendData(System.Byte[],System.Int32,System.Int32,System.Byte)">
+            <summary>Sends data to the server peer. Optionally may be provided <paramref name="channel"/>. Reliable sequenced packets delivers independently on different channels.</summary>
         </member>
         <member name="T:Eco.Shared.Networking.Udp.IUdpLibrary">
             <summary>
@@ -1354,6 +1742,12 @@
             Base interface for all UPD peers (either client or server).
             Contains common UPD transport methods: like Connect to specific peer, Send to peer or Receive message.
             </summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Udp.IUdpPeer.SendData(System.Object,System.Byte[],System.Int32,System.Int32,System.Byte)">
+            <summary>Sends data to the <paramref name="connection"/> (one of connected peers). Optionally may be provided <paramref name="channel"/>. Reliable sequenced packets delivers independently on different channels.</summary>
+        </member>
+        <member name="M:Eco.Shared.Networking.Udp.IUdpPeer.SendData(System.Collections.Generic.IEnumerable{System.Object},System.Byte[],System.Int32,System.Int32,System.Byte)">
+            <summary>Sends data to all <paramref name="connections"/>. Optionally may be provided <paramref name="channel"/>. Reliable sequenced packets delivers independently on different channels.</summary>
         </member>
         <member name="T:Eco.Shared.Networking.Udp.IUnconnectedUdpPeer">
             <summary>
@@ -1463,15 +1857,6 @@
         <member name="F:Eco.Shared.Networking.Udp.SimpleUnconnectedUdpPeer.ENetMtu">
             <summary> ENet Network Library MTU, we should have unconnected messages &lt;= MTU to be received by ENet. </summary>
         </member>
-        <member name="T:Eco.Shared.Numerics.Vector3Ex">
-            <summary>Extension functions for <see cref="T:System.Numerics.Vector3"/>.</summary>
-        </member>
-        <member name="M:Eco.Shared.Numerics.Vector3Ex.WrappedDistanceSq(System.Numerics.Vector3,System.Numerics.Vector3)">
-            <summary>Calculates wrapped squared distance (using <see cref="P:Eco.Shared.Voxel.World.WrappedVoxelSize"/> for wrapped space).</summary>
-        </member>
-        <member name="M:Eco.Shared.Numerics.Vector3Ex.WithY(System.Numerics.Vector3,System.Single)">
-            <summary>Returns new <see cref="T:System.Numerics.Vector3"/> with <see cref="F:System.Numerics.Vector3.Y"/> component replaced with <paramref name="y"/> value.</summary>
-        </member>
         <member name="M:Eco.Shared.Pathing.AITarget.Clear">
             <summary>Stop moving along any routes, and clear targets.</summary>
         </member>
@@ -1481,7 +1866,7 @@
         <member name="M:Eco.Shared.Pathing.AITarget.TryGetTargetObject(Eco.Shared.Networking.INetObjectPosition@)">
             <summary> Returns <paramref name="targetObj"/> if it is set and available in <see cref="T:Eco.Shared.Networking.NetObjectManager"/>. </summary>
         </member>
-        <member name="M:Eco.Shared.Pathing.AITarget.SetPosition(Eco.Shared.Math.Vector3)">
+        <member name="M:Eco.Shared.Pathing.AITarget.SetPosition(System.Numerics.Vector3)">
             <summary> Clear the route and set the position as passed. </summary>
         </member>
         <member name="M:Eco.Shared.Pathing.AITarget.SetLook(Eco.Shared.Networking.INetObjectPosition)">
@@ -1603,6 +1988,42 @@
             In this case <see cref="F:Eco.Shared.Pools.PoolService`1.onReturn"/> will be called anyway, but method return <c>false</c>. It returns <c>true</c> if object was actually added to pool, you can check return value for final object cleanup.
             </summary>
         </member>
+        <member name="M:Eco.Shared.Pools.PoolService`1.RentAndPromiseToReturn(`0@)">
+            <summary>
+            <c>using</c> operator friendly <see cref="M:Eco.Shared.Pools.PoolService`1.Rent"/>.
+            One of common cases is when you need to rent an object only for scope of the function and then return it by the end of the function like:
+            <code>
+            void MyFunc()
+            {
+                var obj = poolService.Rent();
+                try
+                {
+                    DoSomethingWithObject(obj);
+                }
+                finally
+                {
+                    poolService.Return(obj);
+                }
+            }
+            </code>
+            This method let you optimize a layout and don't care about <c>Return</c> by the end of function like:
+            <code>
+            void MyFunc()
+            {
+                using var promise = poolService.RentAndPromiseToReturn(out var obj);
+                DoSomethingWithObject(obj);
+            }
+            </code>
+            or
+            <code>
+            void MyFunc()
+            {
+                using (poolService.RentAndPromiseToReturn(out var obj))
+                    DoSomethingWithObject(obj);
+            }
+            </code>
+            </summary>
+        </member>
         <member name="T:Eco.Shared.Pools.ThreadSafeFixedSizePool`1">
              <summary>
              Fixed Size Pool used to avoid any extra-GC allocations, unless requesting more items from pool than are available.
@@ -1675,15 +2096,59 @@
               resource lookups using this strongly typed resource class.
             </summary>
         </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.DecompressArray``1(Eco.Shared.Serialization.BSONValue)">
+            <summary>Array2Ds always come through as compressed bytes</summary>
+        </member>
         <member name="M:Eco.Shared.Serialization.BsonManipulator.ObjectTypeHandler(Eco.Shared.Serialization.BSONValue)">
             <summary> Unpacks object from <see cref="T:Eco.Shared.Serialization.BSONValue"/>. </summary>
         </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.ToBsonDictionary``2(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}},Eco.Shared.Networking.INetClient,System.Boolean)">
+            <summary>Serializes enumerable of key-value pairs as BSON dictionary.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.MakeGenericDictionarySerializer``2">
+            <summary>Makes generic dictionary lightweight (no reflection) delegate which just converts first argument from non-generic to generic dictionary and passes all other arguments.</summary>
+        </member>
         <member name="M:Eco.Shared.Serialization.BsonManipulator.MakeGenericDictionarySerializer(System.Type)">
             <summary> Makes generic dictionary lightweight (no reflection) delegate which just converts first argument from non-generic to generic dictionary and passes all other arguments. </summary>
-            todo: move to reflection utils
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.FromBsonIDictionary(System.Type,Eco.Shared.Serialization.BSONObject)">
+            <summary>Creates new dictionary from BSON <paramref name="obj"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.FromBsonToDictionary``2(Eco.Shared.Serialization.BSONObject,System.Collections.Generic.IDictionary{``0,``1})">
+            <summary>Deserializes <paramref name="obj"/> to <paramref name="dictionary"/>. <paramref name="dictionary"/> elements will be replaced with new elements from BSON.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.FromBsonToDictionary(Eco.Shared.Serialization.BSONObject,System.Collections.IDictionary,System.Type,System.Type)">
+            <summary>Deserializes <paramref name="obj"/> to <paramref name="dictionary"/>. <paramref name="dictionary"/> elements will be replaced with new elements from BSON.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForClassType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})">
+            <summary>Register <see cref="T:Eco.Shared.Serialization.BsonManipulator.FromBsonFunction`1"/> for <typeparamref name="T"/> of class type.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForValueType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})">
+            <summary>Register <see cref="T:Eco.Shared.Serialization.BsonManipulator.FromBsonFunction`1"/> for <typeparamref name="T"/> of value type.</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BsonManipulator.BsonNullCondition(System.Linq.Expressions.Expression,System.Linq.Expressions.Expression)">
+            <summary>
+            Helper function for <see cref="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForValueType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})"/> and <see cref="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForClassType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})"/>.
+            Generates following expression <c>value == null || value.ValueType == BSONValueType.Null ? null : body</c>.
+            </summary>
+        </member>
+        <member name="T:Eco.Shared.Serialization.BsonManipulator.FromBsonFunction`1">
+            <summary>FromBson function wrapper used by <see cref="M:Eco.Shared.Serialization.BsonManipulator.FromBson``1(Eco.Shared.Serialization.BSONValue)"/>. By default it uses <see cref="M:Eco.Shared.Serialization.BsonManipulator.FromBson(Eco.Shared.Serialization.BSONValue,System.Type)"/>, but uses optimized versions registered with <see cref="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForValueType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})"/> or <see cref="M:Eco.Shared.Serialization.BsonManipulator.RegisterFromBsonFunctionForClassType``1(System.Linq.Expressions.Expression{System.Func{Eco.Shared.Serialization.BSONValue,``0}})"/> when possible. For primitive types it is 3x times faster with optimized version and don't need to use boxing/unboxing form object with extra GC allocation.</summary>
         </member>
         <member name="T:Eco.Shared.Serialization.BSONArray">
             <summary>Array of <see cref="T:Eco.Shared.Serialization.BSONValue"/> items. Used in binary serialization while data transfer data between client and server.</summary>
+        </member>
+        <member name="T:Eco.Shared.Serialization.BSONCachedValue">
+            <summary>
+            <see cref="T:Eco.Shared.Serialization.BSONCachedValue"/> may be used to cache any other <see cref="T:Eco.Shared.Serialization.BSONValue"/> and to be used in place of it. Cached <see cref="T:Eco.Shared.Serialization.BSONValue"/> will be pre-serialized to byte array and helps to save serialization time.
+            When decoded it will be deserialized as a cached BSONValue. There no need for additional handling on receiving side.
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BSONCachedValue.Cache(Eco.Shared.Serialization.BSONValue)">
+            <summary>Encodes <paramref name="value"/> to binary form and saves it to <see cref="F:Eco.Shared.Serialization.BSONCachedValue.CachedBytes"/>. Returned <see cref="T:Eco.Shared.Serialization.BSONCachedValue"/> can't be modified. Cached value will be recycled!</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.BSONCachedValue.Recycle">
+            <summary>Recycle does nothing, because usually cached value shared between multiple BSON objects.</summary>
         </member>
         <member name="F:Eco.Shared.Serialization.BSONObject.refs">
             <value> References count. </value>
@@ -1755,6 +2220,28 @@
         <member name="T:Eco.Shared.Serialization.BSONValueType">
             <summary>Value type of <see cref="T:Eco.Shared.Serialization.BSONValue"/>. <see cref="T:Eco.Shared.Serialization.BSONValue"/> may be used to store different value types and with that enum they may be distinguished.</summary>
         </member>
+        <member name="T:Eco.Shared.Serialization.IBsonSerializable">
+            <summary>Adds support for serializing to a <see cref="T:Eco.Shared.Serialization.BSONObject"/> instance</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.IBsonSerializable.ToBson">
+            <summary>Creates a new <see cref="T:Eco.Shared.Serialization.BSONObject"/> instance from this object.</summary>
+            <returns>Object serialized into a <see cref="T:Eco.Shared.Serialization.BSONObject"/>.</returns>
+        </member>
+        <member name="T:Eco.Shared.Serialization.IBsonDeserializable">
+            <summary>Adds support for deserializing from a <see cref="T:Eco.Shared.Serialization.BSONObject"/> instance</summary>
+        </member>
+        <member name="M:Eco.Shared.Serialization.IBsonDeserializable.FromBson(Eco.Shared.Serialization.BSONObject)">
+            <summary>Reads a <see cref="T:Eco.Shared.Serialization.BSONObject"/> object instance into memory.</summary>
+            <param name="bson"><see cref="T:Eco.Shared.Serialization.BSONObject"/> to read from.</param>
+        </member>
+        <member name="T:Eco.Shared.Serialization.IBsonSerialize">
+            <summary>Adds support for serializing to and from a <see cref="T:Eco.Shared.Serialization.BSONObject"/> instance</summary>
+            <seealso cref="T:Eco.Shared.Serialization.IBsonSerializable"/>
+            <seealso cref="T:Eco.Shared.Serialization.IBsonDeserializable"/>
+        </member>
+        <member name="T:Eco.Shared.Serialization.SerializedAsEnumerableAttribute">
+            <summary>Custom types serialized as enumerable collections (like Dictionary or List) should have that attribute.</summary>
+        </member>
         <member name="T:Eco.Shared.Serialization.SerializedAttribute">
             <summary> This symbol will be serialized to BSON for storage in the world file. </summary>
         </member>
@@ -1807,13 +2294,16 @@
         <member name="T:Eco.Shared.Services.ExcludeFromChatAttribute">
             <summary>Don't show this category in chat tab picker</summary>
         </member>
+        <member name="T:Eco.Shared.Services.InstantNotificationPosition">
+            <summary> For instant notifications, position of notification in screen sent as parameter in RPC method. </summary>
+        </member>
         <member name="T:Eco.Shared.Services.LockedInChinaAttribute">
             <summary> attribute for making properties readonly when ChinaLockedMode </summary>
-            used mainly for testing, allowing to use props otherwise hidden 
+            used mainly for testing, allowing to use props otherwise hidden
         </member>
         <member name="T:Eco.Shared.Services.VisibleForQAOnlyAttribute">
             <summary> attribute for making plugin properties visible when QA enabled </summary>
-            used mainly for testing, allowing to display/interect with props otherwise hidden 
+            used mainly for testing, allowing to display/interect with props otherwise hidden
             e.g.: expose ChinaLockedMode prop for QA
         </member>
         <member name="M:Eco.Shared.Services.QualityAssurance.IsQAModeActive">
@@ -1837,6 +2327,15 @@
         </member>
         <member name="T:Eco.Shared.States.ModularVehicleToolState">
             <summary> Stores current vehicle tool state, depending on animation/delays/etc </summary>
+        </member>
+        <member name="T:Eco.Shared.States.AnimationEat">
+            <summary> Stores the various player eat states. Needed for 3rd person eating switches </summary>
+        </member>
+        <member name="T:Eco.Shared.States.AnimationEmoteHelper">
+            <summary>Holds data about animation emotes that's needed on the client.</summary>
+        </member>
+        <member name="P:Eco.Shared.States.AnimationEmoteHelper.EmotesWithoutIK">
+            <summary>Emotes in this list behave improperly when on uneven ground and avatar IK is enabled, client disables IK while playing these emotes.</summary>
         </member>
         <member name="T:Eco.Shared.Streams.FastBufferedWriteStream">
             <summary>Fast optimized alternative to <see cref="T:System.IO.BufferedStream"/> with write-only non-seekable support which allows to minimize number of checks and calculations, because of limitations.</summary>
@@ -1920,12 +2419,38 @@
             <param name="truncatedTicks">number of ticks truncated to match current limit.</param>
             <returns>new TimeLimit object.</returns>
         </member>
-        <member name="T:Eco.Shared.Tools.DetectingPerformanceCounter">
-            <summary><see cref="T:Eco.Shared.Tools.PerformanceCounter"/> which detects values which has duration over expected and emits static event for them.</summary>
-            <inheritdoc/>
+        <member name="T:Eco.Shared.Tools.AggregatedValue">
+            <summary>Aggregated value. May be used for optimized calculation of Min, Max, Sum, Count and Average.</summary>
         </member>
-        <member name="E:Eco.Shared.Tools.DetectingPerformanceCounter.PerformanceIssueDetected">
-            <summary>Event which reported every time when outstanding value detected. Stack trace is optional and only provided when <see cref="F:Eco.Shared.Tools.DetectingPerformanceCounter.GrabStacktrace"/> is <c>true</c>.</summary>
+        <member name="T:Eco.Shared.Tools.AggregatingValueRecorder">
+            <summary><see cref="T:Eco.Shared.Tools.IValueRecorder"/> aggregating data by specific period. I.e. per second or per minute. Aggregates number of recorded values and total duration per period.</summary>
+        </member>
+        <member name="P:Eco.Shared.Tools.AggregatingValueRecorder.AggregatedCount">
+            <summary>Returns number of events per period aggregated data. I.e. per second.</summary>
+        </member>
+        <member name="P:Eco.Shared.Tools.AggregatingValueRecorder.AggregateDuration">
+            <summary>Returns duration of all events per period aggregated data. I.e. per second.</summary>
+        </member>
+        <member name="P:Eco.Shared.Tools.AggregatingValueRecorder.Period">
+            <summary>Aggregation period.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.AggregatingValueRecorder.FlushCompleted">
+            <summary>Ensures all periods data aggregated. Usually it auto flushes when next period starts, but for rare events it may not happen and require manual flush.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.AggregatingValueRecorder.FlushCompleted(System.Int64)">
+            <summary>Adds active aggregated value stats to <see cref="F:Eco.Shared.Tools.AggregatingValueRecorder.count"/> and <see cref="F:Eco.Shared.Tools.AggregatingValueRecorder.duration"/> aggregated values if <paramref name="ticks"/> after <see cref="F:Eco.Shared.Tools.AggregatingValueRecorder.nextBreakdown"/>.</summary>
+        </member>
+        <member name="T:Eco.Shared.Tools.DetectingValueRecorder">
+            <summary><see cref="T:Eco.Shared.Tools.PerformanceCounter"/> which detects values which has duration over expected and emits static event for them.</summary>
+        </member>
+        <member name="E:Eco.Shared.Tools.DetectingValueRecorder.PerformanceIssueDetected">
+            <summary>Event which reported every time when outstanding value detected. Stack trace is optional and only provided when <see cref="F:Eco.Shared.Tools.DetectingValueRecorder.GrabStacktrace"/> is <c>true</c>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.DetectingValueRecorderExtensions.WithPerformanceIssuesDetection(Eco.Shared.Tools.PerformanceCounter,System.TimeSpan,System.Boolean)">
+            <summary>Adds <see cref="T:Eco.Shared.Tools.DetectingValueRecorder"/> to <see cref="T:Eco.Shared.Tools.PerformanceCounter"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.IValueRecorder.RecordValue(Eco.Shared.Tools.PerformanceCounterValue@)">
+            <summary>Called for every recorded value with <see cref="T:Eco.Shared.Tools.IValueRecorder"/>.</summary>
         </member>
         <member name="T:Eco.Shared.Tools.PerformanceCounter">
             <summary>
@@ -1937,16 +2462,19 @@
         <member name="M:Eco.Shared.Tools.PerformanceCounter.#ctor(System.String,System.Int32)">
             <summary>Create a PerformanceCounter with the maximum number of historical values stored.</summary>
         </member>
-        <member name="M:Eco.Shared.Tools.PerformanceCounter.AddValue(System.String)">
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.GetRecorders``1">
+            <summary>Returns all value recorders of type <typeparamref name="T"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.AddValue(System.String,System.Object)">
             <summary> Add a value with an optional name. Call Dispose to end duration time, or use a using block.</summary>
         </member>
-        <member name="M:Eco.Shared.Tools.PerformanceCounter.AddValue(System.TimeSpan,System.String)">
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.AddValue(System.TimeSpan,System.String,System.Object)">
             <summary> Add a value with an optional name with known duration.</summary>
         </member>
         <member name="M:Eco.Shared.Tools.PerformanceCounter.AddMarker">
             <summary> Add an event marker, which is a durationless event.</summary>
         </member>
-        <member name="M:Eco.Shared.Tools.PerformanceCounter.Add(System.TimeSpan,System.String)">
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.Add(System.TimeSpan,System.String,System.Object)">
             <summary>
             "Adds" new performance counter value.
             It may be added as pre-calculated value (then it should have <paramref name="initialDuration"/>) or as value start point.
@@ -1965,13 +2493,19 @@
             then it sets <see cref="F:Eco.Shared.Tools.PerformanceCounter.Length"/> to value index + 1.</p>
             </remarks>
         </member>
-        <member name="M:Eco.Shared.Tools.PerformanceCounter.MinMaxAverage">
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.Aggregate(System.TimeSpan)">
+            <summary>Get the min, max, and average for the specified period of time.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.Aggregate">
             <summary>Get the min, max, and average for the history of values.</summary>
         </member>
         <member name="M:Eco.Shared.Tools.PerformanceCounter.TryGetLastValue(System.Double@)">
             <summary>Attempts to retrieve the last value stored.</summary>
             <param name="value">Value stored if it exists. Otherwise 0</param>
             <returns><c>true</c> if a value was retrieved. Otherwise <c>false</c>.</returns>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceCounter.WithValueRecorder(Eco.Shared.Tools.IValueRecorder)">
+            <summary>Empowers <see cref="T:Eco.Shared.Tools.PerformanceCounter"/> with <paramref name="valueRecorder"/>. Do it before start using the counter to avoid multi-threading issues.</summary>
         </member>
         <member name="T:Eco.Shared.Tools.PerformanceCounterExtensions">
             <summary> Helper extension methods for <see cref="T:Eco.Shared.Tools.PerformanceCounter"/>. </summary>
@@ -1988,10 +2522,22 @@
             <summary> A reference to a single performance counter. </summary>
         </member>
         <member name="T:Eco.Shared.Tools.PerformanceIssue">
-            <summary>Structure containing information about performance issue detected by <see cref="T:Eco.Shared.Tools.DetectingPerformanceCounter"/>.</summary>
+            <summary>Structure containing information about performance issue detected by <see cref="T:Eco.Shared.Tools.DetectingValueRecorder"/>.</summary>
         </member>
         <member name="T:Eco.Shared.Tools.PerformanceManager">
             <summary> Class for managing performance counters (<see cref="T:Eco.Shared.Tools.PerformanceCounter"/>) and producing performance reports. </summary>
+        </member>
+        <member name="P:Eco.Shared.Tools.PerformanceManager.Default">
+            <summary>Returns Default <see cref="T:Eco.Shared.Tools.PerformanceManager"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceManager.AddPerformanceCounter(System.String,System.Int32)">
+            <summary>Adds new performance counter. If performance counter with same name already exists then throws <see cref="T:System.InvalidOperationException"/>..</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceManager.AddPerformanceCounter(System.String,System.Func{Eco.Shared.Tools.PerformanceCounter,Eco.Shared.Tools.PerformanceCounter})">
+            <summary>Adds new performance counter. If performance counter with same name already exists then throws <see cref="T:System.InvalidOperationException"/>. Uses <paramref name="configure"/> for custom counter configuration.</summary>
+        </member>
+        <member name="M:Eco.Shared.Tools.PerformanceManager.AddPerformanceCounter(System.String,System.Int32,System.Func{Eco.Shared.Tools.PerformanceCounter,Eco.Shared.Tools.PerformanceCounter})">
+            <summary>Adds new performance counter. If performance counter with same name already exists then throws <see cref="T:System.InvalidOperationException"/>. Uses <paramref name="configure"/> for custom counter configuration.</summary>
         </member>
         <member name="M:Eco.Shared.Tools.PerformanceManager.AddPerformanceCounter(Eco.Shared.Tools.PerformanceCounter)">
             <summary>Adds new performance counter. If performance counter with same name already exists then throws <see cref="T:System.InvalidOperationException"/>.</summary>
@@ -2017,11 +2563,20 @@
         <member name="T:Eco.Shared.Tools.PerformanceReportFormat">
             <summary>Enum of performance report formats.</summary>
         </member>
+        <member name="T:Eco.Shared.Tools.TotalsRecorder">
+            <summary>Totals recorder for <see cref="T:Eco.Shared.Tools.PerformanceCounter"/>.</summary>
+        </member>
         <member name="T:Eco.Shared.UI.MultiSelectorPopUpFlags">
             <summary> Flags for customizing The MultiSelector Pop up behavior. </summary>
         </member>
+        <member name="T:Eco.Shared.Utils.ActionRef`1">
+            <summary>For when you want a ref type in a callback.</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.Array2D`1.ReadFromStream(System.IO.MemoryStream)">
             <summary>Creates <see cref="T:Eco.Shared.Utils.Array2D`1"/> from <paramref name="stream"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ArrayUtils.CreateWithNewEntries``1(System.Int32)">
+            <summary>Create an array of the given size, and instantiate the given type into each entry.</summary>
         </member>
         <member name="M:Eco.Shared.Utils.BidirectionalMap`2.TryGetValue(`0,`1@)">
             <summary> Tries to get <paramref name="val"/> by the <paramref name="key"/>. </summary>
@@ -2261,8 +2816,11 @@
         <member name="M:Eco.Shared.Utils.Binary.ByteSpanReader.ReadDouble">
             <summary>Read a double value from the reader and advance read position by 8. Always uses LittleEndian.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.Binary.ByteSpanReader.ReadVector2">
+            <summary>Read a <see cref="T:Eco.Shared.Math.Vector2"/> from the reader and advance read position by 8 (2 x float).</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.Binary.ByteSpanReader.ReadVector3">
-            <summary>Read a <see cref="T:Eco.Shared.Math.Vector3"/> from the reader and advance read position by 12 (3 x float).</summary>
+            <summary>Read a <see cref="T:System.Numerics.Vector3"/> from the reader and advance read position by 12 (3 x float).</summary>
         </member>
         <member name="M:Eco.Shared.Utils.Binary.ByteSpanReader.ReadSingle">
             <summary>Read a double value from the reader and advance read position by 4. Always uses LittleEndian.</summary>
@@ -2299,6 +2857,24 @@
         </member>
         <member name="M:Eco.Shared.Utils.Binary.ByteSpanReader.Skip(System.Int32)">
             <summary>Skips <paramref name="count"/> bytes.</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.BlockLayout">
+            <summary>A set of blocks represented by dictionary of block positions mapped to block IDs. Used in blueprints and multi-block placement.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.BlockLayout.SetValue(Eco.Shared.Math.Vector3i,System.UInt16)">
+            <summary> Set the block ID of a relative position, overwriting any existing block ID. </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.BlockLayout.RemoveValue(Eco.Shared.Math.Vector3i)">
+            <summary> Clear the block from the given position if it is set.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.BlockLayout.TryGetValue(Eco.Shared.Math.Vector3i,System.UInt16@)">
+            <summary> Gets the block ID for the given position if it exists. </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.BlockLayout.Clear">
+            <summary> Clear all block IDs from the blueprint. </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.BlockLayout.SetFromRangeAndBlockId(System.Collections.Generic.IEnumerable{Eco.Shared.Math.Vector3i},System.UInt16)">
+            <summary> Sets the blueprint to all the blocks of the range, relative to WorldRange.min, set to the given block ID. </summary>
         </member>
         <member name="T:Eco.Shared.Utils.CommandLine">
              <summary>
@@ -2346,14 +2922,29 @@
         <member name="M:Eco.Shared.Utils.ListExtensions.NullIndices``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>Returns an enumerable of each index that has a null value in the passed list.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ListExtensions.FindNearestValue``1(System.Collections.Generic.IList{``0},``0,System.Func{``0,``0,System.Single})">
+            <summary>Finds nearest value in collection</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ListExtensions.FindNearestValueAndDistance``1(System.Collections.Generic.IList{``0},``0,System.Func{``0,``0,System.Single})">
+            <summary>Finds nearest value and distance in collection</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ListExtensions.FindNearestValueIndex``1(System.Collections.Generic.IList{``0},``0,System.Func{``0,``0,System.Single})">
+            <summary>Finds nearest value index in collection</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ListExtensions.FindNearestValueIndexAndDistance``1(System.Collections.Generic.IList{``0},``0,System.Func{``0,``0,System.Single})">
+            <summary>Finds nearest value index and distance in collection</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ListExtensions.RotateLeft``1(System.Collections.Generic.IList{``0},System.Int32)">
+            <summary>"Rotates" list by <paramref name="offset"/>. Every element has it's index shifted left by offset, if it results in negative index then it pushes to end of the list.</summary>
+            <example><code>
+            new[] { 1, 2, 3, 4 }.RotateLeft(2) // => 3, 4, 1, 2
+            </code></example>
+        </member>
         <member name="M:Eco.Shared.Utils.ArrayExtensions.CurveOrder``1(``0[])">
             <summary>Pass forward sorted array for large middle numbers for example {1,2,3,4,5} would be {1,3,5,4,2}, or reverse sorted array for large side numbers for example {5,4,3,2,1} would be {5,3,1,2,4}, this is useful for aligning trees based on depth, this is a special iterator that jumps through enumerable check this explanation: https://stackoverflow.com/a/3796619</summary>
             <example>One of the cases this is used on is the tech tree visualizer where nodes with higher total rank go in the top and bottom for a better aethestic and line drawing:
             <code>listToOrder.OrderByDescending(tree => GetTotalRank(tree)).ToArray().CurveOrder();</code>
             </example>
-        </member>
-        <member name="M:Eco.Shared.Utils.DictionaryExtensions.TryRemove``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1@)">
-            <summary> Replicates <see cref="M:System.Collections.Concurrent.ConcurrentDictionary`2.TryRemove(`0,`1@)"/> for regular dictionary (handy way to get and remove value with one call). It isn't atomic like concurrent dictionary version though. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.DictionaryExtensions.AddOrUpdate``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1,System.Func{``1,``1,``1})">
             <summary>Add a new element to a dictionary, or update an existing one if the key already exists.
@@ -2380,6 +2971,9 @@
             <param name="queue">destination queue.</param>
             <param name="list">list to add.</param>
             <typeparam name="T">item type.</typeparam>
+        </member>
+        <member name="M:Eco.Shared.Utils.CollectionExtensions.Set``1(System.Collections.Generic.HashSet{``0},System.Collections.Generic.IEnumerable{``0})">
+            <summary>Clear the hash set and assign it the new set.</summary>
         </member>
         <member name="M:Eco.Shared.Utils.CollectionExtensions.ContainsAny``1(System.Collections.Generic.ICollection{``0},System.Collections.Generic.IEnumerable{``0})">
             <summary> Checks if <paramref name="source"/> collection contains any value from <paramref name="values"/>. </summary>
@@ -2408,6 +3002,12 @@
         <member name="M:Eco.Shared.Utils.ListUtil.TakeSelectAndCalcRest``2(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{``0,``1},System.Func{``0,System.Int32})">
             <summary>Take first <paramref name="numToTake"/> of items in IEnumerable, transform it with Func <paramref name="doWithTaken"/> and apply Func <paramref name="doForRest"/> on the elements left in IEnumerable.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ListUtil.ConvertToBits``1(System.Collections.Generic.IList{``0},System.Func{``0,System.Boolean})">
+            <summary>Converts container into 64bit data.</summary>
+            <remarks>Saves the bit if container element comparer returns true</remarks>
+            <param name="compareFunc">Comparer for saving the bit</param>
+            <exception cref="T:System.IndexOutOfRangeException">If container size is more than 64</exception>
+        </member>
         <member name="M:Eco.Shared.Utils.SetExtensions.First``1(System.Collections.Generic.HashSet{``0})">
             <summary> No alloc version of Enumerable.First() for HashSet. </summary>
             <exception cref="T:System.InvalidOperationException">If no elements in HashSet.</exception>
@@ -2423,6 +3023,15 @@
         </member>
         <member name="M:Eco.Shared.Utils.SetExtensions.EnumerableIndexOf(System.Collections.IEnumerable,System.Object)">
             <summary>Return the index of the given value in a non-generic enumerable. Note that this is O(N), and should only be used when generic version of IEnumerable isnt available.</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.Delegates">
+            <summary>Helper methods for delegates.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.Delegates.InterlockedAddAssign``1(``0@,``0)">
+            <summary>Atomic thread-safe alternative to += operator.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.Delegates.InterlockedSubtractAssign``1(``0@,``0)">
+            <summary>Atomic thread-safe alternative to -= operator.</summary>
         </member>
         <member name="T:Eco.Shared.Utils.DelegateWrapper`1">
             <summary>
@@ -2450,6 +3059,9 @@
         </member>
         <member name="M:Eco.Shared.Utils.EnumerableExtensions.TryGetFirst``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},``0@)">
             <summary> Gets the first value matching <paramref name="predicate"/> into an out var, returning true if found. </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.EnumerableExtensions.TryGetSingle``1(System.Collections.Generic.IEnumerable{``0},``0@)">
+            <summary> Gets the single value into an out var, returning true if found only one value. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.EnumerableExtensions.TryGetSingle``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},``0@)">
             <summary> Gets the single value matching <paramref name="predicate"/> into an out var, returning true if found only one value. </summary>
@@ -2553,8 +3165,8 @@
         <member name="T:Eco.Shared.Utils.EnumUtils">
             <summary>Utility classes for interacting with Enum instances.</summary>
         </member>
-        <member name="M:Eco.Shared.Utils.EnumUtils.HasAnyFlag``1(``0,System.Enum)">
-            <summary>Checks if a flag exists, from an or'd together flag.</summary>
+        <member name="M:Eco.Shared.Utils.EnumUtils.ToEnumMap``2(System.Collections.Generic.IList{``1})">
+            <summary> Maps the contents of an array or a list to a Dictionary of specified enum type. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.EnumUtils.SequentialEntries``1">
             <summary>Returns a <seealso cref="T:System.Collections.Generic.IEnumerable`1"/> instancing containing the distinct etnries of an Enum object ordered by value.</summary>
@@ -2571,6 +3183,12 @@
         </member>
         <member name="M:Eco.Shared.Utils.EnumUtils.HasAttribute``1(System.Enum,System.Boolean)">
             <summary>Checks if enum value has an attribute</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.EnumUtils.EnumInfo`1">
+            <summary>Cached information about <see cref="T:System.Enum"/> type. Makes names, values and count requests much cheaper.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.EventUtils.RaiseEvent``1(System.Object,System.String,``0)">
+            <summary>Allows raising an event on object from an external party, via reflection.</summary>
         </member>
         <member name="M:Eco.Shared.Utils.ExceptionUtils.TryFindExceptionOfType``1(System.Exception,``0@)">
             <summary>Recursively tries to find exception of type <typeparamref name="T"/> for the <paramref name="exception"/>. It may be <paramref name="exception"/> itself or one of it's inner exceptions.</summary>
@@ -2598,6 +3216,12 @@
             <param name="value"></param>
             <param name="pow"></param>
             <returns></returns>
+        </member>
+        <member name="T:Eco.Shared.Utils.ForceStartEndComparer">
+            <summary>
+            Forces a given string name to be the first in the list. The rest of the list is sorted alphabetically.
+            </summary>
+            <seealso cref="T:System.IComparable`1"/>
         </member>
         <member name="M:Eco.Shared.Utils.GeneralUtils.IsDefault``1(``0)">
             <summary>Tests if a given value is the default.  Used for structs. </summary>
@@ -2728,10 +3352,10 @@
         <member name="M:Eco.Shared.Utils.MathUtil.LerpToTarget(System.Single,System.Single,System.Single)">
             <summary>Sum source with delta to approach target, without passing it, and respecting absolute value.</summary>
         </member>
-        <member name="M:Eco.Shared.Utils.MathUtil.NormalizeAngleDeg(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,System.Single)">
+        <member name="M:Eco.Shared.Utils.MathUtil.NormalizeAngleDeg(System.Numerics.Vector3,System.Numerics.Vector3,System.Single)">
             <summary> Find a normalized (-1 : 1) angle between two directions. Cuts angle higher than max angle </summary>
         </member>
-        <member name="M:Eco.Shared.Utils.MathUtil.IsInCenter(Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,Eco.Shared.Math.Vector3,System.Single)">
+        <member name="M:Eco.Shared.Utils.MathUtil.IsInCenter(System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3,System.Numerics.Vector3,System.Single)">
             <summary>
             Determine whether the point is in the center of a block
             </summary>
@@ -3011,8 +3635,49 @@
             <param name="path">Path to check.</param>
             <returns><c>true</c> if the path value of <paramref name="path"/> is contained within <paramref name="root"/>>. Otherwise <c>false</c>.</returns>
         </member>
+        <member name="T:Eco.Shared.Utils.PeriodicUpdateSpatial">
+            <summary>Updates only when a position changes sufficiently or time has changed.</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.ProfanityFilterType">
+            <summary>Enumerable used to define profanity filtering behaviour.</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.ProfaneWords">
+            <summary>
+            Singleton instance for loading the profane words used by the <see cref="T:Eco.Shared.Utils.ProfanityFilter"/> singleton.
+            Loads a profanity list obtained from https://github.com/shutterstock/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words on Eco Server with other languages available at the link.
+            Non Eco Server use cases can be loaded via the <see cref="F:Eco.Shared.Utils.ProfaneWords.OverrideLoad"/> static <see cref="T:System.Func`2"/> variable.
+            </summary>
+        </member>
+        <member name="F:Eco.Shared.Utils.ProfaneWords.OverrideLoad">
+            <summary>Hook for providing custom profane word loading instead of the default "Profanity.eco" file in Eco Server. Generally used by Eco Client.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfaneWords.Load">
+            <summary>Loads the local profanity file into memory or loads the words provided by the <see cref="F:Eco.Shared.Utils.ProfaneWords.OverrideLoad"/> attribute if present.</summary>
+            <returns>Loaded profane words to censor.</returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfaneWords.LoadConfigs">
+            <summary>Loads the profane words line by line as found inside the file defined at <see cref="F:Eco.Shared.Utils.ProfaneWords.ProfanityFile"/> or its matching template file <see cref="F:Eco.Shared.Utils.ProfaneWords.ProfanityFileTemplate"/>.</summary>
+            <returns>Loaded profanity words if either profanity server config file was found. Otherwise returns an empty <see cref="T:System.String"/> <see cref="T:System.Array"/>.</returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfanityFilter.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>Initializes the <see cref="T:Eco.Shared.Utils.ProfanityFilter"/> singleton with a predefined list of blacklisted "profane" words.</summary>
+            <param name="blackListWords"><see cref="T:System.Collections.Generic.IEnumerable`1"/> containing all blacklisted/censored "profane" words.</param>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfanityFilter.#ctor">
+            <summary>Initializes the <see cref="T:Eco.Shared.Utils.ProfanityFilter"/> singleton with the blacklisted words defined by the <see cref="T:Eco.Shared.Utils.ProfaneWords"/> singleton.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfanityFilter.ValidateTextContainsProfanity(System.String)">
+            <summary>Validates and returns if the text contains profane content.</summary>
+            <param name="text"><see cref="T:System.String"/> to check for profanity.</param>
+            <returns>True if profanity was detected. Otherwise returns false.</returns>
+        </member>
         <member name="M:Eco.Shared.Utils.ProfanityFilter.Invoke(Eco.Shared.Networking.INetClient,Eco.Shared.Networking.RPCInvocation@)">
             <summary>Invokes <paramref name="invocation"/> with profanity filter.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ProfanityFilter.Clean(System.String)">
+            <summary>Cleans a text <see cref="T:System.String"/> instance of any profanity found in it.</summary>
+            <param name="text"><see cref="T:System.String"/> to censor profanity from if detected.</param>
+            <returns>Censored <see cref="T:System.String"/> if profanity was detected in the original text <see cref="T:System.String"/></returns>
         </member>
         <member name="T:Eco.Shared.Utils.RandomCandidateChooser`1">
              <summary>
@@ -3048,6 +3713,9 @@
         <member name="M:Eco.Shared.Utils.RandomUtil.Shuffle``1(``0[])">
             <summary> Shortcut for <see cref="M:Eco.Shared.Utils.RandomExtensions.Shuffle``1(System.Random,``0[])"/> with <see cref="P:Eco.Shared.Utils.RandomUtil.Global"/> randomizer. </summary>
         </member>
+        <member name="F:Eco.Shared.Utils.ReflectionUtils.BlackListedAssemblies">
+            <summary>Any assembely that starts with one of these strings will not be scanned when we're doing various reflection checks.</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.ReflectionUtils.DerivedTypes(System.Type,System.Reflection.Assembly,System.Boolean)">
             <summary> Returns all derived types for <paramref name="baseType"/> optionally in specific <paramref name="assembly"/> and optionally (if <paramref name="includeSelf"/> set) returning the type itself. </summary>
         </member>
@@ -3063,6 +3731,9 @@
         <member name="M:Eco.Shared.Utils.ReflectionUtils.GenericTypeImplementations(System.Type,System.Reflection.Assembly)">
             <summary>Returns all compile time implementations of <paramref name="genericTypeDefinition"/>.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.HasGenericParameters(System.Type)">
+            <summary>Checks if <paramref name="type"/> has any generic parameters. I.e. when generic type used as based it isn't more generic type definition, but still has generic parameters in it's definition (i.e. base class for StringKeyDictionary{TValue} : Dictionary{string, TValue}).</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.ReflectionUtils.IsInheritFromGenericTypeDefinition(System.Type,System.Type)">
             <summary> Checks if any base class is generic type from generic type definition. </summary>
             <sample><code>EconomyManager.IsInheritFromGenericTypeDefinition(typeof(Singleton&lt;&gt;)) // true</code></sample>
@@ -3076,11 +3747,50 @@
         <member name="M:Eco.Shared.Utils.ReflectionUtils.AllMembers(System.Type,System.Boolean)">
             <summary> Gets all properties, methods, and extension methods.  Operates either on instance members or static members based on passed bool. </summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.WithAttribute``1(System.Collections.Generic.IEnumerable{System.Reflection.PropertyInfo},System.Boolean)">
+            <summary>Syntax sugar for <see cref="M:Eco.Shared.Utils.ReflectionUtils.WithAttribute``2(System.Collections.Generic.IEnumerable{``0},System.Boolean)"/> for property infos.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.WithAttribute``2(System.Collections.Generic.IEnumerable{``0},System.Boolean)">
+            <summary>Filters <paramref name="members"/> to keep only members with <typeparamref name="TAttr"/> attribute(s).</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.ReflectionUtils.MembersWithAttribute``1(System.Type,System.Boolean)">
             <summary> Returns all public instance and static members that have the passed attribute, including from parent classes. </summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.ForEachMemberWithAttribute``1(System.Type,System.Boolean,System.Action{System.Reflection.MemberInfo,``0})">
+            <summary>Execute action for every member of type that has argument of type T.</summary>
+            <param name="includeExtenions">Should extension methods be included?</param>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.PropertyValue``1(System.Object,System.Reflection.PropertyInfo)">
+            <summary>Returns a value of <paramref name="property"/> converted to <typeparamref name="T"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.Value``1(System.Reflection.PropertyInfo,System.Object)">
+            <summary>Returns a value of <paramref name="property"/> converted to <typeparamref name="T"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.Attribute``1(System.Reflection.MemberInfo,System.Boolean)">
+            <summary>Returns first attribute of type <typeparamref name="T"/> if exists, otherwise <c>null</c>.</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.ReflectionUtils.HasAttributeIncludingInterfaces``1(System.Reflection.PropertyInfo)">
             <summary>Checks if <paramref name="property"/> has attribute <typeparamref name="T"/> or any of interfaces declaring same property has the attribute.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.DeepAttributes(System.Type,System.Type)">
+            <summary>Collects all attributes of 'attributeToScan' in typeToScan itself and its Fields, Properties and Methods</summary>
+            <param name="attributeToScan">Attribute to scan for.</param>
+            <returns>Discovered MemberInfo and their attribute data.</returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetTypesWithAttribute``1(System.Reflection.Assembly)">
+            <summary>Returns all types in the assembly with the attribute,</summary>
+            <typeparam name="T">Attribute to find,</typeparam>
+            <param name="assembly">Assembly to check,</param>
+            <returns><see cref="T:System.Collections.Generic.IEnumerable`1"/> containing all the found types.</returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetEnumerableType(System.Type)">
+            <summary>Returns element type for array, or first implemented <see cref="T:System.Collections.Generic.IEnumerable`1"/> interface, or of type itself if it is <see cref="T:System.Collections.Generic.IEnumerable`1"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.TryGetGenericInterface(System.Type,System.Type,System.Type@)">
+            <summary>Tries to get <paramref name="genericInterface"/> constructed from <paramref name="genericInterfaceDefinition"/> implemented by <paramref name="type"/>.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.IsGenericTypeConstructedFrom(System.Type,System.Type)">
+            <summary>Checks if <paramref name="genericType"/> is a generic type constructed from <paramref name="genericTypeDefinition"/>.</summary>
         </member>
         <member name="M:Eco.Shared.Utils.ReflectionUtils.TryGetPropertyByName``1(System.Object,System.String,``0@)">
             <summary>Try to get a property using reflection for the given name, and assign it to val, returning true if found.</summary>
@@ -3132,6 +3842,33 @@
         <member name="M:Eco.Shared.Utils.ReflectionUtils.TryGetMatchingInterfaceMethod(System.Reflection.MethodInfo,System.Func{System.Reflection.MethodInfo,System.Boolean},System.Reflection.MethodInfo@)">
             <summary>Tries to get first interface declaring <paramref name="methodInfo"/> matching <paramref name="predicate"/>.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.IsExtension(System.Reflection.MethodInfo)">
+            <summary>Checks if <paramref name="methodInfo"/> is an extension method.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.IsOverride(System.Reflection.MethodInfo)">
+            <summary>Checks if <paramref name="methodInfo"/> is an method override.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.TryGetExtensionType(System.Reflection.MethodInfo,System.Type@)">
+            <summary>Try to get the extension type of the method if it's an extended method else return false.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.BasestOrDefault(System.Type,System.Func{System.Type,System.Boolean})">
+            <summary>
+            Returns basest type in hierarchy matching <paramref name="predicate"/>. All types higher in hierarchy also should match the <paramref name="predicate"/>.
+            Usually may be used to find a base type which first implements an interface: <code>type.BasestOrDefault(t => typeof(IController).IsAssignableFrom(t)).</code>
+            </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetSimpleName(System.Reflection.MemberInfo)">
+            <summary>Returns simple name (without explicit interface specification). I.e. Eco.Core.Systems.IRegistrar.IdToObj => IdToObj.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetSimpleName(System.String)">
+            <summary>Returns simple name (without explicit interface specification). I.e. Eco.Core.Systems.IRegistrar.IdToObj => IdToObj.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetMatchingMethod(System.Reflection.MethodInfo,System.Type)">
+            <summary>Returns method with same name and arguments in <paramref name="type"/> (looking into declared members only). Returns <c>null</c> if such method not found.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.ReflectionUtils.GetTypeByGenericTypeDefinitionInHierarchy(System.Type,System.Type)">
+            <summary>Returns (if exists) type corresponding to <paramref name="genericTypeDefinition"/> in <paramref name="type"/> hierarchy. I.e. if when check for List{}: List{string} -> List{string}, IntList : List{int} -> List{int}.</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.Text.SignedNum(System.Single,System.Boolean)">
             <summary> Returns styled number with forded sign ('+' - for positive, '-' - for negative, no sign for zero). If <paramref name="invertHighlight"/> set then it will use negative highlight for positive value. </summary>
         </member>
@@ -3144,6 +3881,21 @@
         <member name="M:Eco.Shared.Utils.Text.StyledIntUnsigned(System.Single)">
             <summary> Styles originally negative numbers in red (negative style) while removing the negative sign from the output.</summary>
         </member>
+        <member name="M:Eco.Shared.Utils.Text.Pos(System.Int32,System.Object)">
+            <summary>Sets text position inside text box (value in EM not pixels) The size of an EM depends on its parent. E.g if the text size of body is 16 pixels, then 150% or 1.5 EM will be 24 pixels (1.5 * 16).</summary>
+            <remarks>Not supported in UIToolkit</remarks>
+        </member>
+        <member name="M:Eco.Shared.Utils.Text.PosIgnoreFont(System.Int32,System.Object)">
+            <summary>Sets text position inside text box ignoring font size</summary>
+            <remarks>In most cases it's better to use <see cref="M:Eco.Shared.Utils.Text.Pos(System.Int32,System.Object)"/></remarks>
+        </member>
+        <member name="M:Eco.Shared.Utils.Text.CopyToClipBoard(System.String,System.Object,System.String)">
+            <summary>
+            Build a link to copy to clipboard on click
+            <br> "<paramref name="name"/> (click to copy): &lt;link=copy:<paramref name="toCopy"/>&gt;{<paramref name="inner"/>}&lt;/link&gt;" </br>
+            </summary>
+            <param name="toCopy"> Content copied to clipboard on click </param>
+        </member>
         <member name="M:Eco.Shared.Utils.Text.Font(System.String,System.String)">
             <summary>Creates a font tag for use with TextMeshPro on the Client. http://digitalnativestudios.com/textmeshpro/docs/rich-text/#font </summary>
             <returns>TextMeshPro compatible font tag.</returns>
@@ -3154,7 +3906,7 @@
         <member name="M:Eco.Shared.Utils.Text.Truncate(System.String,System.Int32)">
             <summary> Cuts visible part of the content after provided width and replaces it with a hoverable link to see the origin. </summary>
         </member>
-        <member name="M:Eco.Shared.Utils.Text.Columns(System.Int32,System.ValueTuple{System.String,System.Int32}[])">
+        <member name="M:Eco.Shared.Utils.Text.Columns(System.Int32,System.Int32,System.ValueTuple{System.String,System.Int32}[])">
             <summary> Aligns strings within blocks with specified widths. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.Text.NegativeOrDefault(System.String,System.Boolean)">
@@ -3163,12 +3915,24 @@
         <member name="M:Eco.Shared.Utils.Text.NegativeOrPositive(System.String,System.Boolean)">
             <summary>Coloring text with positive or negative color by condition</summary>
         </member>
+        <member name="T:Eco.Shared.Utils.ISettlementConfig">
+            <summary>Interface to hold reference to the SettlementTypes for accessing them outside Eco.Gameplay, SettlementConfig implements this</summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.SharedSettlement">
+            <summary>Holds the reference to SettlementConfig for easy access from anywhere. it's set from SettlementDefinitions</summary>
+        </member>
+        <member name="P:Eco.Shared.Utils.AutoSingleton`1.Obj">
+            <summary>Current Singleton instance of this object.</summary>
+        </member>
         <member name="T:Eco.Shared.Utils.Singleton`1.Temp">
             <summary>
             Structure which used for temporary replaced singletons (for test purposes). It saves previous singleton object (usually null) and when disposed restores it.
             It may be preferred over <see cref="M:Eco.Shared.Utils.Singleton`1.WithTempSingleton``1(System.Action)"/>, because you may create this object in [SetUp] method and destroy in [TearDown] method
             allowing all tests to run with this temp singleton without explicitly wrapping them in WithTempSingleton call.
             </summary>
+        </member>
+        <member name="P:Eco.Shared.Utils.Singleton`1.Obj">
+            <summary>Current Singleton instance of this object.</summary>
         </member>
         <member name="M:Eco.Shared.Utils.StopwatchExtensions.FractionalMilliseconds(System.Diagnostics.Stopwatch)">
             <summary>Returns milliseconds as fractional.</summary>
@@ -3214,6 +3978,17 @@
             <param name="bytesToCopy">number of bytes to copy.</param>
             <returns>number of bytes transferred.</returns>
         </member>
+        <member name="T:Eco.Shared.Utils.StringBuilderExtensions">
+            <summary>Static extension methods for the .NET <see cref="T:System.Text.StringBuilder"/> object.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringDisplayUtil.AppendHeaderLine(System.Text.StringBuilder,System.String,System.Int32,System.Char)">
+            <summary>Appends a header line to the <see cref="T:System.Text.StringBuilder"/>. Header line represents a text centered between space characters that will always match the requested length.</summary>
+            <param name="sb"><see cref="T:System.Text.StringBuilder"/> instance to operate on.</param>
+            <param name="header">Header text to center on the line</param>
+            <param name="totalLength">Total length of the header line. Defaults to 50</param>
+            <param name="spaceCharacter">Space character used to pad the header line. Defaults to "-"</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.JoinSafe(Eco.Shared.Localization.LocString,Eco.Shared.Localization.LocString,System.String,System.String)">
             <summary>Join a string to another with a separator, if both are set.</summary>
         </member>
@@ -3222,6 +3997,21 @@
         </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.StripTagsNoParse(System.String)">
             <summary>Same as <see cref="M:Eco.Shared.Utils.StringExtensions.StripTags(System.String)"/>, but does not strip tags that are inside 'noparse' tag.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.ContainsTags(System.String)">
+            <summary> Returns true if given string contains ANY tags. </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.StripNonColorTags(System.String)">
+            <summary> Removes all tags from a given string EXCEPT 'color' tags (includes both opening and closing tags). </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.StripSizeTags(System.String)">
+            <summary> Removes all size tags from a given string (includes both opening and closing tags). </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.StripIconTags(System.String)">
+            <summary> Removes all icon tags from a given string (includes both opening and closing tags). </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.StripLinkTags(System.String)">
+            <summary> Removes all link tags from a given string (includes both opening and closing tags). </summary>
         </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.Strip(System.String,System.Char)">
             <summary>Strips character <paramref name="ch"/> from <paramref name="input"/> string.</summary>
@@ -3242,11 +4032,35 @@
         <member name="M:Eco.Shared.Utils.StringExtensions.TrimEndString(System.String,System.String)">
             <summary> Trim the end if it matches a string. </summary>
         </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.Truncate(System.String,System.Int32,System.String,System.Boolean)">
+            <summary>Shortens a string with appending of suffix. May work with tagged messages, and in this case will count only real text ignoring tags.</summary>
+        </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.IsSet(System.String)">
             <summary> Checks if string is not null and is not empty. Inverse of <see cref="M:System.String.IsNullOrEmpty(System.String)"/>. </summary>
         </member>
         <member name="M:Eco.Shared.Utils.StringExtensions.AppendToBuilder(Eco.Shared.Localization.LocString,Eco.Shared.Localization.LocStringBuilder@)">
             <summary> Avoid creating new builder if not needed </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.ReplaceFirst(System.String,System.String,System.String,System.Int32)">
+            <summary>Replaces the first string found.</summary>
+            <param name="text">String instance to operate on.</param>
+            <param name="search">String to search for.</param>
+            <param name="replace">String to replace.</param>
+            <param name="startIndex">Index to start search from.</param>
+            <returns>String instance with the value of <paramref name="search"/> replaced with <paramref name="replace"/></returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.ReplaceFirstAfter(System.String,System.String,System.String,System.String)">
+            <summary>Replaces first occurence of <paramref name="search"/> with <paramref name="replace"/> after first occurence of <paramref name="after"/>.</summary>
+            <seealso cref="M:Eco.Shared.Utils.StringExtensions.ReplaceFirst(System.String,System.String,System.String,System.Int32)"/>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.FastSplit2(System.ReadOnlySpan{System.Char},System.Char)">
+            <summary>Helper to split a span into two parts. Fast split call.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.StringExtensions.SplitToChunks(System.String,System.Int32)">
+            <summary>Splits a string into chunks of equal or less size as defined by the max size input.</summary>
+            <param name="text">String instance to split</param>
+            <param name="chunkSize">Max size of each chunk.</param>
+            <returns><see cref="T:System.Collections.Generic.IEnumerable`1"/> containing the instance of <paramref name="text"/> split into chunks determined by the given size.</returns>
         </member>
         <member name="T:Eco.Shared.Utils.TableUtils">
             <summary> Contains utility functions that can help style table content. </summary>
@@ -3361,6 +4175,32 @@
         <member name="M:Eco.Shared.Utils.TimedTaskProgressLogging.ParseAndFormatLogParts(System.String)">
             <summary> Parse the name and progress of a task console message and format it for client UI display. Used by the client when running the server through the client. </summary>
         </member>
+        <member name="M:Eco.Shared.Utils.TimeUtil.SecondsToTimeUnit(System.Double,Eco.Shared.Items.TimeUnits)">
+            <summary>Converts seconds to desired unit of time</summary>
+            <returns>Time converted to <paramref name="timeUnits"/></returns>
+        </member>
+        <member name="M:Eco.Shared.Utils.TimeUtil.ConvertTime(Eco.Shared.Items.TimeUnits,System.Double,Eco.Shared.Items.TimeUnits)">
+            <summary>Converts time from one unit of time to another</summary>
+            <returns>Time converted from <paramref name="startUnit"/> to <paramref name="finalUnit"/></returns>
+        </member>
+        <member name="F:Eco.Shared.Utils.TMPLinkTags.NoTooltip">
+            <summary> Sometimes we do not want a tooltip to be generated at all. </summary>
+        </member>
+        <member name="F:Eco.Shared.Utils.TMPLinkTags.CopyToClipboard">
+            <summary> Content to copy to clipboard on click. </summary>
+        </member>
+        <member name="T:Eco.Shared.Utils.UserTextureSize">
+            <summary>enum for setting custom size to UserTexture in TMPro</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.UserTextureSizeUtils.TryGetUserTextureFromString(System.String,Eco.Shared.Utils.UserTextureSize@)">
+            <summary>Finds the relevant UserTextureSize by the string value. (Check <see cref="M:Eco.Shared.Utils.UserTextureSizeExtensions.GetTagValue(Eco.Shared.Utils.UserTextureSize)"/> for better understanding.</summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.UserTextureSizeExtensions.GetTagValue(Eco.Shared.Utils.UserTextureSize)">
+            <summary>Tag value for TMPro. (I.E img size = "small"/>) </summary>
+        </member>
+        <member name="M:Eco.Shared.Utils.UserTextureSizeExtensions.GetPixelSize(Eco.Shared.Utils.UserTextureSize)">
+            <summary>Get TMPro sprite pixel size</summary>
+        </member>
         <member name="T:Eco.Shared.Validation.PropertyValidationUtils">
             <summary>Utilities to work with ValidationAttribute. Could be used on client.</summary>
         </member>
@@ -3460,6 +4300,9 @@
             <param name="ss">this ref.</param>
             <param name="subject">subject to unsubscribe.</param>
         </member>
+        <member name="M:Eco.Shared.View.SubscriptionsExtensions.Unsubscribe(Eco.Shared.View.ISubscriptions,Eco.Shared.View.ISubscription)">
+            <summary>Unsubscribe and stop tracking a single subscription.</summary>
+        </member>
         <member name="M:Eco.Shared.View.SubscriptionsExtensions.MakeNestedSubscriptions(Eco.Shared.View.ISubscriptions)">
             <summary> Makes nested subscriptions collection working as subset of <paramref name="ss"/>. It will be unsubscribed when <see cref="M:Eco.Shared.View.SubscriptionsExtensions.UnsubscribeAll(Eco.Shared.View.ISubscriptions,System.Boolean)"/> called on <paramref name="ss"/>, but may when <see cref="M:Eco.Shared.View.SubscriptionsExtensions.UnsubscribeAll(Eco.Shared.View.ISubscriptions,System.Boolean)"/> called on this it will only clear nested subscriptions. </summary>
         </member>
@@ -3472,6 +4315,10 @@
         </member>
         <member name="M:Eco.Shared.View.SubscriptionsExtensions.TrySubscribe(Eco.Shared.View.ISubscriptions,Eco.Shared.View.IPropertySubscription)">
             <summary> Tries to add <paramref name="subscription"/> to <paramref name="ss"/>. Internally it subscribes on <see cref="P:Eco.Shared.View.IPropertySubscription.Subject"/>. If subscription already was added to same property with same callback then it will return <c>false</c> and won't add subscription. </summary>
+        </member>
+        <member name="M:Eco.Shared.View.SubscriptionsExtensions.SubscribeWithoutTracking(Eco.Shared.View.IObservable,System.String,System.Action)">
+            <summary>Creates a subscription but doesnt track it within a Subscriptions object. Should only be used when something is subscribing to its own properties,
+            meaning both 'watched' and 'watcher' are a single object and die at the same time.</summary>
         </member>
         <member name="F:Eco.Shared.View.View.NoOpSubscription">
             <summary> When a property callback removed during notifying the property. It will replace removed callback to avoid invoke on invalid subscription. </summary>
@@ -3541,6 +4388,12 @@
         <member name="M:Eco.Shared.View.View.ViewData.TryGetDynamicValue(System.String,System.Object@)">
             <summary>Get a dynamic value matching the given name, returning false if the property isnt found.</summary>
         </member>
+        <member name="M:Eco.Shared.View.View.IsAvailable(System.String)">
+            <summary>Check if a property is available (that is, if it needs requesting it has been received).</summary>
+        </member>
+        <member name="M:Eco.Shared.View.View.IsAvailable(Eco.Shared.View.ViewMemberInfo)">
+            <summary>Check if a property is available (that is, if it needs requesting it has been received).</summary>
+        </member>
         <member name="M:Eco.Shared.View.View.SetFieldViewData``1(``0@,Eco.Shared.View.View)">
             <summary> Sets <paramref name="field"/>'s <see cref="T:Eco.Shared.View.View.ViewData"/> from <paramref name="view"/>. We need this method because of accessibility restrictions. </summary>
         </member>
@@ -3556,8 +4409,27 @@
         <member name="P:Eco.Shared.View.View.DebugName">
             <summary> Returns View name which may be used for debugging. </summary>
         </member>
+        <member name="T:Eco.Shared.View.ViewClassInfo">
+            <summary>Represents the 'type' data about a server type, something which is also represented as a view. The server builds these
+            viewclassinfos and sends them to the client, which can then use them for many purposes.  Any information about a type can be transmitted
+            from server to client on this class.</summary>
+        </member>
+        <member name="F:Eco.Shared.View.ViewClassInfo.Members">
+            <summary>Data about each member of this type, transmitted from server to client.</summary>
+        </member>
+        <member name="T:Eco.Shared.View.ViewMemberInfo">
+            <summary>Contains data about an individual member (property or method) that is accessible on the server from the client.
+            Its analgous to a MemberInfo reflection class, it communicates to the client the type data on properties of a ViewClassInfo.</summary>
+        </member>
         <member name="T:Eco.Shared.View.ViewManager">
             <summary> Manages Views on client. Read more details about View System in ViewSystem.md. </summary>
+        </member>
+        <member name="M:Eco.Shared.View.ViewManager.DerivedTypesRecursive(System.Int32,System.Boolean)">
+            <summary>Returns all the derived types for the given type id.</summary>
+        </member>
+        <member name="M:Eco.Shared.View.ViewManager.DerivedTypesRecursiveHelper(System.Int32,System.Boolean)">
+            <summary>Helper is needed to prevent repeats (calling Distinct after it) because there can be multiple routes to a derived
+            class when an interface is queried, like IProposable.</summary>
         </member>
         <member name="M:Eco.Shared.View.ViewManager.UnpackageViewInternal(Eco.Shared.Serialization.BSONValue)">
             <summary>Unpackaged <see cref="T:Eco.Shared.View.View"/> from BSON with value type <see cref="F:Eco.Shared.Serialization.BSONValueType.View"/> or <see cref="F:Eco.Shared.Serialization.BSONValueType.ViewRef"/>.</summary>
